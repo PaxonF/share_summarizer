@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -19,28 +18,25 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paxonf.sharesummarizer.data.AppPreferences
 import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: (String) -> Unit) {
-        // Get the text size from preferences
-        val context = LocalContext.current
-        val textSize = AppPreferences(context).textSize
+        val scrollState = rememberScrollState()
 
         ModalBottomSheet(
                 onDismissRequest = onDismiss,
                 modifier = Modifier.fillMaxHeight(0.9f),
                 scrimColor = Color.Transparent,
-                dragHandle = { /* Empty composable to hide the drag handle */},
                 containerColor = MaterialTheme.colorScheme.surface
         ) {
                 Column(
                         modifier =
                                 Modifier.fillMaxWidth()
+                                        .fillMaxHeight()
                                         .padding(16.dp)
-                                        .verticalScroll(rememberScrollState()),
+                                        .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                         Text(
@@ -109,15 +105,6 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
                                         )
 
                                         Spacer(modifier = Modifier.height(16.dp))
-
-                                        Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceEvenly
-                                        ) {
-                                                Button(onClick = onDismiss) { Text("Close") }
-
-                                                // Add buttons for sharing, copying, etc.
-                                        }
                                 }
                                 else -> {
                                         Text(

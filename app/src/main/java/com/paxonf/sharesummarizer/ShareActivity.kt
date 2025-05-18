@@ -57,7 +57,7 @@ class ShareActivity : ComponentActivity() {
         }
 
         setContent {
-            ShareSummarizerTheme {
+            ShareSummarizerTheme(dynamicColor = true) {
                 var showBottomSheet by remember { mutableStateOf(true) }
 
                 if (showBottomSheet) {

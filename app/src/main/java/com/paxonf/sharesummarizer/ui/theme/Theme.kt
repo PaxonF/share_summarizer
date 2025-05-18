@@ -1,6 +1,7 @@
 package com.paxonf.sharesummarizer.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -24,12 +25,13 @@ private val LightColorScheme =
 @Composable
 fun ShareSummarizerTheme(
         darkTheme: Boolean = isSystemInDarkTheme(),
+        // Dynamic color is available on Android 12+
         dynamicColor: Boolean = true,
         content: @Composable () -> Unit
 ) {
     val colorScheme =
             when {
-                dynamicColor -> {
+                dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                     val context = LocalContext.current
                     if (darkTheme) dynamicDarkColorScheme(context)
                     else dynamicLightColorScheme(context)
@@ -47,6 +49,12 @@ fun ShareSummarizerTheme(
             WindowCompat.setDecorFitsSystemWindows(window, false)
             // Set status bar icons to be visible against any background
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            // For Android 8.0+ set the navigation bar color to follow the theme
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                window.navigationBarColor = Color.Transparent.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars =
+                        !darkTheme
+            }
         }
     }
 

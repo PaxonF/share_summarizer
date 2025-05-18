@@ -21,26 +21,20 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
     var summaryLengthSliderPosition by remember {
         mutableFloatStateOf(settingsViewModel.summaryLength)
     }
-    var textSizeSliderPosition by remember { mutableFloatStateOf(settingsViewModel.textSize) }
 
     // Track the initial values with mutable state to allow updates after saving
     var initialApiKey by remember { mutableStateOf(settingsViewModel.apiKey) }
     var initialSummaryLength by remember { mutableStateOf(settingsViewModel.summaryLength) }
-    var initialTextSize by remember { mutableStateOf(settingsViewModel.textSize) }
 
     // Compute whether anything has changed
     val hasChanges =
             remember(
                     apiKeyInput,
                     summaryLengthSliderPosition,
-                    textSizeSliderPosition,
                     initialApiKey,
-                    initialSummaryLength,
-                    initialTextSize
+                    initialSummaryLength
             ) {
-                apiKeyInput != initialApiKey ||
-                        summaryLengthSliderPosition != initialSummaryLength ||
-                        textSizeSliderPosition != initialTextSize
+                apiKeyInput != initialApiKey || summaryLengthSliderPosition != initialSummaryLength
             }
 
     Scaffold(topBar = { TopAppBar(title = { Text("App Settings") }) }) { paddingValues ->
@@ -81,15 +75,6 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.fillMaxWidth()
             )
 
-            Text("Text Size: ${(textSizeSliderPosition * 100).toInt()}%")
-            Slider(
-                    value = textSizeSliderPosition,
-                    onValueChange = { textSizeSliderPosition = it },
-                    valueRange = 0.5f..2.0f, // 50% to 200% of normal text size
-                    steps = 14, // (2.0 - 0.5) / 0.1 - 1 = 14 steps for 0.1 increments
-                    modifier = Modifier.fillMaxWidth()
-            )
-
             // Add other settings UI components here (e.g., Switches, RadioButtons)
 
             Spacer(modifier = Modifier.weight(1f))
@@ -98,12 +83,10 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                     onClick = {
                         settingsViewModel.saveApiKey(apiKeyInput)
                         settingsViewModel.saveSummaryLength(summaryLengthSliderPosition)
-                        settingsViewModel.saveTextSize(textSizeSliderPosition)
 
                         // Update initial values to match current values after saving
                         initialApiKey = apiKeyInput
                         initialSummaryLength = summaryLengthSliderPosition
-                        initialTextSize = textSizeSliderPosition
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = hasChanges

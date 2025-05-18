@@ -17,10 +17,6 @@ class AppPreferences(private val context: Context) {
         get() = preferences.getFloat(KEY_SUMMARY_LENGTH, 0.5f)
         set(value) = preferences.edit { putFloat(KEY_SUMMARY_LENGTH, value) }
 
-    var textSize: Float
-        get() = preferences.getFloat(KEY_TEXT_SIZE, 1.0f)
-        set(value) = preferences.edit { putFloat(KEY_TEXT_SIZE, value) }
-
     companion object {
         private const val PREFERENCES_NAME = "share_summarizer_prefs"
         private const val KEY_API_KEY = "api_key"

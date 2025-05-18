@@ -33,7 +33,9 @@ class MainActivity : ComponentActivity() {
         appPreferences = AppPreferences(applicationContext)
 
         setContent {
-            ShareSummarizerTheme { AppSettingsScreen(settingsViewModel = settingsViewModel) }
+            ShareSummarizerTheme(dynamicColor = true) {
+                AppSettingsScreen(settingsViewModel = settingsViewModel)
+            }
         }
     }
 }

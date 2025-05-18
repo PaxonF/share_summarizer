@@ -21,7 +21,7 @@ class TextSummarizer(private val context: Context) {
 
             try {
                 val prompt =
-                        "Summarize the following text concisely: \n\n$text.\n\n You may use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response."
+                        "Summarize the following text, article, or link concisely: \n\n$text.\n\n You may use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nIf the link is unaccessible, please let the user know the link is not accessible."
                 makeAPIRequest(prompt, apiKey)
             } catch (e: Exception) {
                 e.printStackTrace() // Log the exception for debugging
