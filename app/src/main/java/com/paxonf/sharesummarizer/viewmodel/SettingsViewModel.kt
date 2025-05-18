@@ -8,21 +8,14 @@ class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel(
     val apiKey: String
         get() = appPreferences.apiKey
 
-    val summaryLength: Float
+    val summaryLength: Int
         get() = appPreferences.summaryLength
-
-    val textSize: Float
-        get() = appPreferences.textSize
 
     fun saveApiKey(apiKey: String) {
         appPreferences.apiKey = apiKey
     }
 
-    fun saveSummaryLength(length: Float) {
+    fun saveSummaryLength(length: Int) {
         appPreferences.summaryLength = length
-    }
-
-    fun saveTextSize(size: Float) {
-        appPreferences.textSize = size
     }
 }

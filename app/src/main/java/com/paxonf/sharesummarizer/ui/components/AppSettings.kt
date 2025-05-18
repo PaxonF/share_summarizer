@@ -19,12 +19,12 @@ import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
 fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
     var apiKeyInput by remember { mutableStateOf(settingsViewModel.apiKey) }
     var summaryLengthSliderPosition by remember {
-        mutableFloatStateOf(settingsViewModel.summaryLength)
+        mutableIntStateOf(settingsViewModel.summaryLength)
     }
 
     // Track the initial values with mutable state to allow updates after saving
     var initialApiKey by remember { mutableStateOf(settingsViewModel.apiKey) }
-    var initialSummaryLength by remember { mutableStateOf(settingsViewModel.summaryLength) }
+    var initialSummaryLength by remember { mutableIntStateOf(settingsViewModel.summaryLength) }
 
     // Compute whether anything has changed
     val hasChanges =
@@ -66,13 +66,20 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
             )
 
-            Text("Summary Length: ${(summaryLengthSliderPosition * 100).toInt()}%")
+            Text("Summary Length: $summaryLengthSliderPosition")
+            Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Short", style = MaterialTheme.typography.bodyMedium)
+                Text("Long", style = MaterialTheme.typography.bodyMedium)
+            }
             Slider(
-                    value = summaryLengthSliderPosition,
-                    onValueChange = { summaryLengthSliderPosition = it },
-                    valueRange = 0.1f..1.0f, // e.g., 10% to 100%
-                    steps = 8, // (1.0 - 0.1) / desired_step_size - 1, e.g. 0.1 step size
-                    modifier = Modifier.fillMaxWidth()
+                    value = summaryLengthSliderPosition.toFloat(),
+                    onValueChange = { summaryLengthSliderPosition = it.toInt() },
+                    valueRange = 1f..5f,
+                    steps = 4, // 5 positions (1-5) means 4 steps between them
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
             )
 
             // Add other settings UI components here (e.g., Switches, RadioButtons)

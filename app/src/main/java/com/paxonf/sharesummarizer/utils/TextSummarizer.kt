@@ -13,21 +13,46 @@ import org.json.JSONObject
 
 class TextSummarizer(private val context: Context) {
 
-    suspend fun summarize(text: String, summaryLength: Float, apiKey: String): String {
+    suspend fun summarize(text: String, summaryLength: Int, apiKey: String): String {
         return withContext(Dispatchers.IO) {
             if (apiKey.isBlank()) {
                 return@withContext fallbackSummarize(text, summaryLength)
             }
 
             try {
+                // Convert the 1-5 scale to a percentage (0.2 to 1.0)
+                val summaryLengthPercentage = convertLengthToPercentage(summaryLength)
+                val summaryLengthString = convertLengthToString(summaryLength)
                 val prompt =
-                        "Summarize the following text, article, or link concisely: \n\n$text.\n\n You may use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nIf the link is unaccessible, please let the user know the link is not accessible."
+                        "Summarize the following text, article, or link concisely: \n\n$text.\n\n In your response, include a brief title for what you're summarizing. You should use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nIf the link is unaccessible, please let the user know the link is not accessible.\n\nThe user has configured that their summary should be '$summaryLengthString' of the original text, or, in other words, '$summaryLengthPercentage' of the original text."
                 makeAPIRequest(prompt, apiKey)
             } catch (e: Exception) {
                 e.printStackTrace() // Log the exception for debugging
-                "Error generating summary: ${e.message}. Falling back to simple summarization."
-                fallbackSummarize(text, summaryLength)
+                return@withContext fallbackSummarize(text, summaryLength)
             }
+        }
+    }
+
+    private fun convertLengthToString(length: Int): String {
+        return when (length) {
+            1 -> "very short"
+            2 -> "short"
+            3 -> "medium"
+            4 -> "long"
+            5 -> "very long"
+            else -> "medium"
+        }
+    }
+
+    // Convert from 1-5 scale to a percentage between 0.2 and 1.0
+    private fun convertLengthToPercentage(length: Int): Float {
+        return when (length) {
+            1 -> 0.05f // Very short (5%)
+            2 -> 0.1f // Short (10%)
+            3 -> 0.15f // Medium (15%)
+            4 -> 0.2f // Long (20%)
+            5 -> 0.25f // Very long (25%)
+            else -> 0.15f // Default to medium if invalid value
         }
     }
 
@@ -112,9 +137,10 @@ class TextSummarizer(private val context: Context) {
     }
 
     /** Simple fallback summarization method (can be kept as a backup) */
-    private fun fallbackSummarize(text: String, summaryLength: Float): String {
+    private fun fallbackSummarize(text: String, summaryLength: Int): String {
+        val percentage = convertLengthToPercentage(summaryLength)
         val sentences = text.split(Regex("[.!?]")).filter { it.isNotBlank() }.map { it.trim() }
-        val sentencesToInclude = (sentences.size * summaryLength).toInt().coerceAtLeast(1)
+        val sentencesToInclude = (sentences.size * percentage).toInt().coerceAtLeast(1)
         return sentences.take(sentencesToInclude).joinToString(". ") + "."
     }
 }
