@@ -2,6 +2,8 @@ package com.paxonf.sharesummarizer.utils
 
 // OkHttp imports
 import android.content.Context
+import android.webkit.URLUtil
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,6 +15,13 @@ import org.json.JSONObject
 
 class TextSummarizer(private val context: Context) {
 
+    private val client =
+            OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(60, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build()
+
     suspend fun summarize(text: String, summaryLength: Int, apiKey: String): String {
         return withContext(Dispatchers.IO) {
             if (apiKey.isBlank()) {
@@ -20,11 +29,23 @@ class TextSummarizer(private val context: Context) {
             }
 
             try {
+                // Check if the text is a URL and fetch its content if needed
+                val contentToSummarize =
+                        if (isUrl(text)) {
+                            try {
+                                fetchUrlContent(text)
+                            } catch (e: Exception) {
+                                return@withContext "Error fetching content from URL: ${e.message}"
+                            }
+                        } else {
+                            text
+                        }
+
                 // Convert the 1-5 scale to a percentage (0.2 to 1.0)
                 val summaryLengthPercentage = convertLengthToPercentage(summaryLength)
                 val summaryLengthString = convertLengthToString(summaryLength)
                 val prompt =
-                        "Summarize the following text, article, or link concisely: \n\n$text.\n\n In your response, include a brief title for what you're summarizing. You should use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nIf the link is unaccessible, please let the user know the link is not accessible.\n\nThe user has configured that their summary should be '$summaryLengthString' of the original text, or, in other words, '$summaryLengthPercentage' of the original text."
+                        "Summarize the following text, article, or link: \n\n$contentToSummarize.\n\n In your response, include a brief title for what you're summarizing. You should use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nThe user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
                 makeAPIRequest(prompt, apiKey)
             } catch (e: Exception) {
                 e.printStackTrace() // Log the exception for debugging
@@ -32,6 +53,25 @@ class TextSummarizer(private val context: Context) {
             }
         }
     }
+
+    private fun isUrl(text: String): Boolean {
+        // Using Android's URLUtil to validate URL
+        return URLUtil.isHttpUrl(text) || URLUtil.isHttpsUrl(text)
+    }
+
+    private suspend fun fetchUrlContent(url: String): String =
+            withContext(Dispatchers.IO) {
+                val request = Request.Builder().url(url).build()
+
+                try {
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                        return@withContext response.body?.string() ?: "No content found at URL"
+                    }
+                } catch (e: Exception) {
+                    throw IOException("Failed to fetch content from URL: ${e.message}")
+                }
+            }
 
     private fun convertLengthToString(length: Int): String {
         return when (length) {
@@ -77,14 +117,6 @@ class TextSummarizer(private val context: Context) {
         requestBodyJson.put("generationConfig", generationConfig)
 
         try {
-            // Create OkHttpClient with increased timeouts
-            val client =
-                    OkHttpClient.Builder()
-                            .connectTimeout(30, TimeUnit.SECONDS)
-                            .readTimeout(60, TimeUnit.SECONDS)
-                            .writeTimeout(30, TimeUnit.SECONDS)
-                            .build()
-
             val mediaType = "application/json; charset=utf-8".toMediaType()
             val requestBody = requestBodyJson.toString().toRequestBody(mediaType)
 
