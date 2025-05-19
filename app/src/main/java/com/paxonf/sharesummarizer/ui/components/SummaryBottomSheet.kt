@@ -29,7 +29,7 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
                 onDismissRequest = onDismiss,
                 modifier = Modifier.fillMaxHeight(0.9f),
                 scrimColor = Color.Transparent,
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
                 Column(
