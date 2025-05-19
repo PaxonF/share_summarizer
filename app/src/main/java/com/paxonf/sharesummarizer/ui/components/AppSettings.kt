@@ -3,6 +3,8 @@ package com.paxonf.sharesummarizer.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,20 +23,27 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
     var summaryLengthSliderPosition by remember {
         mutableIntStateOf(settingsViewModel.summaryLength)
     }
+    var selectedModel by remember { mutableStateOf(settingsViewModel.selectedModel) }
+    var isModelDropdownExpanded by remember { mutableStateOf(false) }
 
     // Track the initial values with mutable state to allow updates after saving
     var initialApiKey by remember { mutableStateOf(settingsViewModel.apiKey) }
     var initialSummaryLength by remember { mutableIntStateOf(settingsViewModel.summaryLength) }
+    var initialSelectedModel by remember { mutableStateOf(settingsViewModel.selectedModel) }
 
     // Compute whether anything has changed
     val hasChanges =
             remember(
                     apiKeyInput,
                     summaryLengthSliderPosition,
+                    selectedModel,
                     initialApiKey,
-                    initialSummaryLength
+                    initialSummaryLength,
+                    initialSelectedModel
             ) {
-                apiKeyInput != initialApiKey || summaryLengthSliderPosition != initialSummaryLength
+                apiKeyInput != initialApiKey ||
+                        summaryLengthSliderPosition != initialSummaryLength ||
+                        selectedModel != initialSelectedModel
             }
 
     Scaffold(topBar = { TopAppBar(title = { Text("App Settings") }) }) { paddingValues ->
@@ -66,6 +75,46 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
             )
 
+            // Model selection dropdown
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                        value = settingsViewModel.availableModels[selectedModel] ?: selectedModel,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("AI Model") },
+                        trailingIcon = {
+                            IconButton(
+                                    onClick = { isModelDropdownExpanded = !isModelDropdownExpanded }
+                            ) {
+                                Icon(
+                                        imageVector =
+                                                if (isModelDropdownExpanded)
+                                                        Icons.Default.KeyboardArrowUp
+                                                else Icons.Default.KeyboardArrowDown,
+                                        contentDescription = "Toggle model dropdown"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                )
+
+                DropdownMenu(
+                        expanded = isModelDropdownExpanded,
+                        onDismissRequest = { isModelDropdownExpanded = false },
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    settingsViewModel.availableModels.forEach { (modelId, displayName) ->
+                        DropdownMenuItem(
+                                text = { Text(displayName) },
+                                onClick = {
+                                    selectedModel = modelId
+                                    isModelDropdownExpanded = false
+                                }
+                        )
+                    }
+                }
+            }
+
             Text("Summary Length: $summaryLengthSliderPosition")
             Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -90,10 +139,12 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                     onClick = {
                         settingsViewModel.saveApiKey(apiKeyInput)
                         settingsViewModel.saveSummaryLength(summaryLengthSliderPosition)
+                        settingsViewModel.saveSelectedModel(selectedModel)
 
                         // Update initial values to match current values after saving
                         initialApiKey = apiKeyInput
                         initialSummaryLength = summaryLengthSliderPosition
+                        initialSelectedModel = selectedModel
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = hasChanges

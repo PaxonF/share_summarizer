@@ -1,29 +1,31 @@
 package com.paxonf.sharesummarizer.ui.components
 
+import android.webkit.WebView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: (String) -> Unit) {
         val scrollState = rememberScrollState()
+
+        // Get current theme colors for WebView
+        val textColor = MaterialTheme.colorScheme.onSurface
+        val backgroundColor = MaterialTheme.colorScheme.surface
 
         ModalBottomSheet(
                 onDismissRequest = onDismiss,
@@ -36,16 +38,15 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
                         modifier =
                                 Modifier.fillMaxWidth()
                                         .fillMaxHeight()
-                                        .padding(16.dp)
+                                        .padding(
+                                                start = 16.dp,
+                                                end = 16.dp,
+                                                bottom = 16.dp,
+                                                top = 8.dp
+                                        )
                                         .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                        Text(
-                                text = "Summary",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
                         when {
                                 uiState.isLoading -> {
                                         CircularProgressIndicator(
@@ -81,28 +82,68 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
                                         ) { Text("Retry") }
                                 }
                                 uiState.summary.isNotEmpty() -> {
-                                        // For testing, append a test string with bold and italic
-                                        // formatting
-                                        val summary = uiState.summary.trim().trimIndent()
+                                        val summary = uiState.summary.trim()
 
-                                        // A simple markdown-style formatter without any external
-                                        // dependencies
-                                        val formattedText =
-                                                remember(summary) {
-                                                        formatBasicMarkdown(
-                                                                summary,
-                                                                headingLarge = 22.sp,
-                                                                headingMedium = 18.sp,
-                                                                headingSmall = 16.sp
-                                                        )
-                                                }
+                                        // Create the complete HTML with markdown parsing and
+                                        // styling
+                                        // Pass current theme colors
+                                        val styledHtml =
+                                                generateStyledHtmlFromMarkdown(
+                                                        summary,
+                                                        textColor = textColor,
+                                                        backgroundColor = backgroundColor
+                                                )
 
-                                        Text(
-                                                text = formattedText,
-                                                style = MaterialTheme.typography.bodyMedium,
+                                        // Use WebView instead of TextView which handles HTML
+                                        // content better
+                                        AndroidView(
                                                 modifier =
                                                         Modifier.fillMaxWidth()
                                                                 .padding(horizontal = 8.dp)
+                                                                .heightIn(min = 200.dp),
+                                                factory = { context ->
+                                                        WebView(context).apply {
+                                                                // Disable scrolling in the WebView
+                                                                // since we have a parent scroller
+                                                                isVerticalScrollBarEnabled = false
+                                                                isHorizontalScrollBarEnabled = false
+
+                                                                // Make WebView background
+                                                                // transparent to show the parent
+                                                                // background
+                                                                setBackgroundColor(
+                                                                        android.graphics.Color
+                                                                                .TRANSPARENT
+                                                                )
+
+                                                                // Configure WebView settings
+                                                                settings.apply {
+                                                                        javaScriptEnabled = false
+                                                                        loadWithOverviewMode = true
+                                                                        useWideViewPort = true
+                                                                        defaultFontSize = 16
+
+                                                                        // Enable text selection and
+                                                                        // copying
+                                                                        setSupportMultipleWindows(
+                                                                                false
+                                                                        )
+                                                                }
+
+                                                                // Enable long-press selection and
+                                                                // context menus
+                                                                isLongClickable = true
+
+                                                                // Load the HTML content directly
+                                                                loadDataWithBaseURL(
+                                                                        null,
+                                                                        styledHtml,
+                                                                        "text/html",
+                                                                        "UTF-8",
+                                                                        null
+                                                                )
+                                                        }
+                                                }
                                         )
 
                                         Spacer(modifier = Modifier.height(16.dp))
@@ -119,93 +160,93 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
         }
 }
 
-// Basic Markdown formatter that handles common markdown syntax
-fun formatBasicMarkdown(
-        markdown: String,
-        headingLarge: TextUnit = 22.sp,
-        headingMedium: TextUnit = 18.sp,
-        headingSmall: TextUnit = 16.sp
-) = buildAnnotatedString {
-        val lines = markdown.split("\n")
+// Helper function to generate styled HTML from markdown
+private fun generateStyledHtmlFromMarkdown(
+        markdownText: String,
+        textColor: Color,
+        backgroundColor: Color
+): String {
+        // Convert Color to hex string for CSS
+        val textColorHex = String.format("#%06X", (0xFFFFFF and textColor.toArgb()))
 
-        for (line in lines) {
-                val trimmedLine = line.trim()
+        // Parse the markdown
+        val flavour = GFMFlavourDescriptor()
+        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(markdownText)
+        val generatedHtml = HtmlGenerator(markdownText, parsedTree, flavour).generateHtml()
 
-                when {
-                        // Headers - only handle basic headers for simplicity
-                        trimmedLine.startsWith("# ") -> {
-                                withStyle(
-                                        SpanStyle(
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = headingLarge
-                                        )
-                                ) { append(trimmedLine.substring(2)) }
-                        }
-                        trimmedLine.startsWith("## ") -> {
-                                withStyle(
-                                        SpanStyle(
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = headingMedium
-                                        )
-                                ) { append(trimmedLine.substring(3)) }
-                        }
-                        trimmedLine.startsWith("### ") -> {
-                                withStyle(
-                                        SpanStyle(
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = headingSmall
-                                        )
-                                ) { append(trimmedLine.substring(4)) }
-                        }
-
-                        // List items
-                        trimmedLine.startsWith("- ") || trimmedLine.startsWith("* ") -> {
-                                append("• ")
-                                append(parseInlineFormatting(trimmedLine.substring(2)))
-                        }
-
-                        // Regular text, parse for inline formatting
-                        else -> {
-                                append(parseInlineFormatting(trimmedLine))
-                        }
+        // Create the complete HTML with styling
+        return """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style type="text/css">
+                body {
+                    font-family: sans-serif;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    color: ${textColorHex};
+                    margin: 8px 0;
+                    padding: 0;
+                    background-color: transparent;
+                    -webkit-user-select: text;
+                    user-select: text;
                 }
-
-                append("\n")
-        }
-}
-
-// Helper function to parse inline formatting (bold and italic)
-fun parseInlineFormatting(text: String) = buildAnnotatedString {
-        var i = 0
-        while (i < text.length) {
-                // Bold text (double asterisks)
-                if (i < text.length - 3 && text.substring(i, i + 2) == "**") {
-                        val endBold = text.indexOf("**", i + 2)
-                        if (endBold != -1) {
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append(text.substring(i + 2, endBold))
-                                }
-                                i = endBold + 2
-                                continue
-                        }
+                h1 {
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: ${textColorHex};
                 }
-
-                // Italic text (single asterisk)
-                if (i < text.length - 1 && text[i] == '*' && text[i + 1] != '*') {
-                        val endItalic = text.indexOf('*', i + 1)
-                        if (endItalic != -1 &&
-                                        (endItalic + 1 >= text.length || text[endItalic + 1] != '*')
-                        ) {
-                                withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                                        append(text.substring(i + 1, endItalic))
-                                }
-                                i = endItalic + 1
-                                continue
-                        }
+                h2 {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: ${textColorHex};
                 }
-
-                // Regular character
-                append(text[i])
-                i++
-        }
+                h3 {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: ${textColorHex};
+                }
+                h1, h2, h3 {
+                    margin-top: 16px;
+                    margin-bottom: 12px;
+                    line-height: 1.3;
+                    -webkit-user-select: text;
+                    user-select: text;
+                }
+                ul, ol {
+                    margin-top: 8px;
+                    margin-bottom: 8px;
+                    padding-left: 24px;
+                    color: ${textColorHex};
+                }
+                li {
+                    margin-bottom: 8px;
+                    padding-left: 4px;
+                    -webkit-user-select: text;
+                    user-select: text;
+                    color: ${textColorHex};
+                }
+                p {
+                    margin-bottom: 12px;
+                    -webkit-user-select: text;
+                    user-select: text;
+                    color: ${textColorHex};
+                }
+                a {
+                    color: ${textColorHex};
+                    text-decoration: underline;
+                }
+                /* Ensure all text is selectable */
+                * {
+                    -webkit-user-select: text;
+                    user-select: text;
+                }
+            </style>
+        </head>
+        <body>
+            $generatedHtml
+        </body>
+    </html>
+    """
 }

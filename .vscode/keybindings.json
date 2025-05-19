@@ -1,0 +1,8 @@
+[
+  {
+    "key": "ctrl+shift+r",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Hot Reload",
+    "when": "editorTextFocus"
+  }
+]

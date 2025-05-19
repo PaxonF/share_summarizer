@@ -29,8 +29,9 @@ class SummaryViewModel(
             try {
                 val summaryLength = appPreferences.summaryLength
                 val apiKey = appPreferences.apiKey
+                val selectedModel = appPreferences.selectedModel
 
-                val summary = textSummarizer.summarize(text, summaryLength, apiKey)
+                val summary = textSummarizer.summarize(text, summaryLength, apiKey, selectedModel)
                 uiState = SummaryUiState(summary = summary, originalText = text, isLoading = false)
             } catch (e: Exception) {
                 uiState =

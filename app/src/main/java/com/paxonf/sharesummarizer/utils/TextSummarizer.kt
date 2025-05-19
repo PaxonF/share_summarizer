@@ -7,11 +7,13 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.dankito.readability4j.Readability4J
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import org.jsoup.Jsoup
 
 class TextSummarizer(private val context: Context) {
 
@@ -22,7 +24,12 @@ class TextSummarizer(private val context: Context) {
                     .writeTimeout(30, TimeUnit.SECONDS)
                     .build()
 
-    suspend fun summarize(text: String, summaryLength: Int, apiKey: String): String {
+    suspend fun summarize(
+            text: String,
+            summaryLength: Int,
+            apiKey: String,
+            modelId: String = "gemini-2.0-flash"
+    ): String {
         return withContext(Dispatchers.IO) {
             if (apiKey.isBlank()) {
                 return@withContext fallbackSummarize(text, summaryLength)
@@ -33,9 +40,9 @@ class TextSummarizer(private val context: Context) {
                 val contentToSummarize =
                         if (isUrl(text)) {
                             try {
-                                fetchUrlContent(text)
+                                extractArticleContent(text)
                             } catch (e: Exception) {
-                                return@withContext "Error fetching content from URL: ${e.message}"
+                                return@withContext "Error extracting content from URL: ${e.message}"
                             }
                         } else {
                             text
@@ -44,9 +51,10 @@ class TextSummarizer(private val context: Context) {
                 // Convert the 1-5 scale to a percentage (0.2 to 1.0)
                 val summaryLengthPercentage = convertLengthToPercentage(summaryLength)
                 val summaryLengthString = convertLengthToString(summaryLength)
-                val prompt =
-                        "Summarize the following text, article, or link: \n\n$contentToSummarize.\n\n In your response, include a brief title for what you're summarizing. You should use markdown formatting to make the summary more readable. If appropriate, summarize it into a few bullet points, with headers, italics, bold, or other markdown formatting to make the summarization clear. Do not include any other text in your response.\n\nThe user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
-                makeAPIRequest(prompt, apiKey)
+                val configInfo =
+                        "The user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
+
+                makeAPIRequest(contentToSummarize, apiKey, modelId, configInfo)
             } catch (e: Exception) {
                 e.printStackTrace() // Log the exception for debugging
                 return@withContext fallbackSummarize(text, summaryLength)
@@ -58,6 +66,36 @@ class TextSummarizer(private val context: Context) {
         // Using Android's URLUtil to validate URL
         return URLUtil.isHttpUrl(text) || URLUtil.isHttpsUrl(text)
     }
+
+    /** Extract article content using Readability4J for better content extraction */
+    private suspend fun extractArticleContent(url: String): String =
+            withContext(Dispatchers.IO) {
+                try {
+                    // First try with Readability4J
+                    val doc =
+                            Jsoup.connect(url)
+                                    .userAgent(
+                                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                                    )
+                                    .timeout(30000)
+                                    .get()
+
+                    val readability = Readability4J(url, doc.outerHtml())
+                    val article = readability.parse()
+
+                    if (!article.content.isNullOrBlank()) {
+                        // Extract text only from the HTML content
+                        return@withContext Jsoup.parse(article.content ?: "").text()
+                    }
+
+                    // If extraction fails, fall back to simple content fetching
+                    return@withContext fetchUrlContent(url)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // If Readability4J fails, fall back to simple content fetching
+                    return@withContext fetchUrlContent(url)
+                }
+            }
 
     private suspend fun fetchUrlContent(url: String): String =
             withContext(Dispatchers.IO) {
@@ -96,16 +134,32 @@ class TextSummarizer(private val context: Context) {
         }
     }
 
-    private fun makeAPIRequest(promptText: String, apiKey: String): String {
-        val modelName = "gemini-1.5-flash" // Using a public Google Gemini model
+    private fun makeAPIRequest(
+            promptText: String,
+            apiKey: String,
+            modelId: String = "gemini-2.0-flash",
+            configInfo: String
+    ): String {
         val urlString =
-                "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent?key=$apiKey"
+                "https://generativelanguage.googleapis.com/v1beta/models/$modelId:generateContent?key=$apiKey"
 
-        // Construct the JSON request body
+        // Extract the system instruction part (everything before the content to summarize)
+        val systemInstructionText =
+                "Summarize the following text. In your response, include a brief title of the article, or whatever you're summarizing, including the author, date, and source, if it is available. You should use raw markdown formatting to make the summary more readable. Use headers, italics, bold, or other markdown formatting to make the summarization clear, and only if appropriate. Do not include any other text in your response. Use bullet points or lists sparingly. Main headers and key ideas should not be bullet points or lists."
+
+        // Construct the JSON request body with system_instruction separated from content
         val requestBodyJson = JSONObject()
+
+        // Add system instruction
+        val systemInstruction = JSONObject()
+        val systemPart = JSONObject().put("text", systemInstructionText + " " + configInfo)
+        systemInstruction.put("parts", org.json.JSONArray().put(systemPart))
+        requestBodyJson.put("system_instruction", systemInstruction)
+
+        // Add content to summarize
         val content = JSONObject()
-        val part = JSONObject().put("text", promptText)
-        content.put("parts", org.json.JSONArray().put(part))
+        val contentPart = JSONObject().put("text", promptText)
+        content.put("parts", org.json.JSONArray().put(contentPart))
         requestBodyJson.put("contents", org.json.JSONArray().put(content))
 
         // Add safety settings and generation config

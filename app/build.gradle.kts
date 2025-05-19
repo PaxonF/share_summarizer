@@ -65,6 +65,9 @@ dependencies {
     implementation("org.json:json:20250107")
     implementation("com.squareup.okhttp3:okhttp:4.12.0") 
     
+    // JetBrains Markdown library
+    implementation("org.jetbrains:markdown:0.5.0")
+    
     // Compose UI dependencies - use a specific BOM version that is stable and known to work with the markdown library
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.compose.ui:ui")
@@ -93,4 +96,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Added Readability4J and Jsoup dependencies
+    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("net.dankito.readability4j:readability4j:1.0.8")
 }

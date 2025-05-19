@@ -1,0 +1,128 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug APK",
+      "type": "shell",
+      "command": "./gradlew assembleDebug",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Debug APK",
+      "type": "shell",
+      "command": "adb install -r app/build/outputs/apk/debug/app-debug.apk",
+      "group": "build",
+      "problemMatcher": [],
+      "dependsOn": ["Build Debug APK"]
+    },
+    {
+      "label": "Run App",
+      "type": "shell",
+      "command": "adb shell am start -n com.paxonf.sharesummarizer/.MainActivity",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run App in Debug Mode",
+      "type": "shell",
+      "command": "adb shell am start -D -n com.paxonf.sharesummarizer/.MainActivity",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean Project",
+      "type": "shell",
+      "command": "./gradlew clean",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "List Connected Devices",
+      "type": "shell",
+      "command": "adb devices",
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Emulator (Pixel 8 Pro)",
+      "type": "shell",
+      "command": "emulator -avd Pixel_8_Pro_API_35 &",
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Complete Debug Setup",
+      "type": "shell",
+      "command": "echo 'Setup complete! Launching debug session...'",
+      "dependsOn": [
+        "Build Debug APK",
+        "Install Debug APK",
+        "Run App in Debug Mode"
+      ],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Prepare For Debugging",
+      "type": "shell",
+      "command": "adb wait-for-device && adb shell pm clear com.paxonf.sharesummarizer",
+      "dependsOn": ["Build Debug APK", "Install Debug APK"],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Hot Reload",
+      "type": "shell",
+      "command": "echo 'Reloading app with changes...'",
+      "dependsOn": ["Build Debug APK", "Install Debug APK", "Run App"],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Kill App",
+      "type": "shell",
+      "command": "adb shell am force-stop com.paxonf.sharesummarizer",
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Clear App Data",
+      "type": "shell",
+      "command": "adb shell pm clear com.paxonf.sharesummarizer",
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build APK",
+      "type": "shell",
+      "command": "./gradlew assembleDebug",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
