@@ -17,5 +17,15 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
+    <!-- Splash Screen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background to the system default background -->
+        <item name="windowSplashScreenBackground">?android:attr/colorBackground</item>
+        <!-- Set the splash screen icon to the app's launcher icon -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Set the theme to be applied after the splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.ShareSummarizer</item>
+    </style>
+
     <string name="app_name_settings">Share Summarizer Settings</string>
 </resources>

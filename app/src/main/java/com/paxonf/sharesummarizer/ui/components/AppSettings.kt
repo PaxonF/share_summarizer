@@ -32,12 +32,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.paxonf.sharesummarizer.data.AppPreferences
+import com.paxonf.sharesummarizer.ui.theme.RobotoFlex
 import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
 import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
 import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
@@ -112,8 +113,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         // State for model selection dialog
         var showModelSelectionDialog by remember { mutableStateOf(false) }
 
-        // State for API key visibility
-        var isApiKeyVisible by remember { mutableStateOf(false) }
+        // State for API key dialog
+        var showApiKeyDialog by remember { mutableStateOf(false) }
 
         // State for preview bottom sheet
         var showPreviewBottomSheet by remember { mutableStateOf(false) }
@@ -220,6 +221,18 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
+        // API Key Edit Dialog
+        if (showApiKeyDialog) {
+                ApiKeyEditDialog(
+                        currentApiKey = apiKeyInput,
+                        onSave = { newApiKey ->
+                                apiKeyInput = newApiKey
+                                showApiKeyDialog = false
+                        },
+                        onDismiss = { showApiKeyDialog = false }
+                )
+        }
+
         // Preview bottom sheet with example content
         if (showPreviewBottomSheet) {
                 val (containerColorForSheet, contentColorForSheet) =
@@ -244,7 +257,18 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         }
 
         Scaffold(
-                topBar = { TopAppBar(title = { Text("Share Summarizer") }) },
+                topBar = {
+                        TopAppBar(
+                                title = {
+                                        Text(
+                                                "Share Summarizer",
+                                                fontFamily = RobotoFlex,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 24.sp
+                                        )
+                                }
+                        )
+                },
                 floatingActionButton = {
                         // Animate FAB visibility - hide when there are unsaved changes
                         AnimatedVisibility(
@@ -301,8 +325,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         MutableInteractionSource()
                                                                 }
                                                 ) {
-                                                if (isApiKeyVisible) {
-                                                        isApiKeyVisible = false
+                                                if (showApiKeyDialog) {
+                                                        showApiKeyDialog = false
                                                 }
                                         },
                                 contentPadding =
@@ -315,7 +339,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 val cardOwnBottomMargin =
                                                         16.dp // External padding on the save card
                                                 // itself
-                                                val desiredSpacingAboveBottomElement = 16.dp
+                                                val desiredSpacingAboveBottomElement = 56.dp
 
                                                 val bottomPaddingForFab =
                                                         fabHeight + desiredSpacingAboveBottomElement
@@ -354,14 +378,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                 modifier =
                                                                         Modifier.fillMaxWidth()
                                                                                 .clickable {
-                                                                                        isApiKeyVisible =
-                                                                                                !isApiKeyVisible
-                                                                                        // Click is
-                                                                                        // consumed
-                                                                                        // here,
-                                                                                        // won't
-                                                                                        // reach
-                                                                                        // overlay
+                                                                                        showApiKeyDialog =
+                                                                                                true
                                                                                 },
                                                                 elevation =
                                                                         CardDefaults
@@ -416,7 +434,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                                 ) {
                                                                                                         "Not configured"
                                                                                                 } else {
-                                                                                                        "●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●"
+                                                                                                        "●●●●●●●●●●●●●●●●●●●"
                                                                                                 },
                                                                                         style =
                                                                                                 MaterialTheme
@@ -446,8 +464,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
 
                                                                         IconButton(
                                                                                 onClick = {
-                                                                                        isApiKeyVisible =
-                                                                                                !isApiKeyVisible
+                                                                                        showApiKeyDialog =
+                                                                                                true
                                                                                 }
                                                                         ) {
                                                                                 Icon(
@@ -455,11 +473,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                                 Icons.Default
                                                                                                         .Edit,
                                                                                         contentDescription =
-                                                                                                if (isApiKeyVisible
-                                                                                                )
-                                                                                                        "Hide API Key"
-                                                                                                else
-                                                                                                        "Edit API Key",
+                                                                                                "Edit API Key",
                                                                                         tint =
                                                                                                 MaterialTheme
                                                                                                         .colorScheme
@@ -473,229 +487,16 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                 }
                                                         }
 
-                                                        // Expandable API key input
-                                                        AnimatedVisibility(
-                                                                visible = isApiKeyVisible,
-                                                                enter =
-                                                                        expandVertically() +
-                                                                                fadeIn(),
-                                                                exit =
-                                                                        shrinkVertically() +
-                                                                                fadeOut()
-                                                        ) {
-                                                                OutlinedTextField(
-                                                                        value = apiKeyInput,
-                                                                        onValueChange = {
-                                                                                apiKeyInput = it
-                                                                        },
-                                                                        label = {
-                                                                                Text(
-                                                                                        "Enter API Key"
-                                                                                )
-                                                                        },
-                                                                        placeholder = {
-                                                                                Text("sk-...")
-                                                                        },
-                                                                        singleLine = true,
-                                                                        modifier =
-                                                                                Modifier.fillMaxWidth(),
-                                                                        visualTransformation =
-                                                                                if (isApiKeyVisible
-                                                                                ) {
-                                                                                        VisualTransformation
-                                                                                                .None
-                                                                                } else {
-                                                                                        PasswordVisualTransformation()
-                                                                                },
-                                                                        keyboardOptions =
-                                                                                KeyboardOptions(
-                                                                                        keyboardType =
-                                                                                                KeyboardType
-                                                                                                        .Password
-                                                                                ),
-                                                                        trailingIcon = {
-                                                                                if (apiKeyInput
-                                                                                                .isNotEmpty()
-                                                                                ) {
-                                                                                        IconButton(
-                                                                                                onClick = {
-                                                                                                        apiKeyInput =
-                                                                                                                ""
-                                                                                                }
-                                                                                        ) {
-                                                                                                Icon(
-                                                                                                        imageVector =
-                                                                                                                Icons.Default
-                                                                                                                        .Clear,
-                                                                                                        contentDescription =
-                                                                                                                "Clear API Key"
-                                                                                                )
-                                                                                        }
-                                                                                }
-                                                                        },
-                                                                        supportingText = {
-                                                                                Text(
-                                                                                        "Required for AI-powered summarization"
-                                                                                )
-                                                                        }
-                                                                )
-                                                        }
-                                                }
-                                        }
-                                }
-
-                                item {
-                                        SettingsSection(title = "Model Selection") {
-                                                val currentModelDisplayName =
-                                                        settingsViewModel.availableModels[
-                                                                selectedModel]
-                                                                ?: selectedModel
-                                                ElevatedCard(
-                                                        modifier =
-                                                                Modifier.fillMaxWidth().clickable {
-                                                                        showModelSelectionDialog =
-                                                                                true
-                                                                },
-                                                        elevation =
-                                                                CardDefaults.elevatedCardElevation(
-                                                                        defaultElevation = 2.dp
-                                                                )
-                                                ) {
-                                                        Row(
-                                                                modifier =
-                                                                        Modifier.fillMaxWidth()
-                                                                                .padding(16.dp),
-                                                                horizontalArrangement =
-                                                                        Arrangement.SpaceBetween,
-                                                                verticalAlignment =
-                                                                        Alignment.CenterVertically
-                                                        ) {
-                                                                Column(
-                                                                        modifier =
-                                                                                Modifier.weight(1f)
-                                                                ) {
-                                                                        Text(
-                                                                                text = "AI Model",
-                                                                                style =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .titleSmall,
-                                                                                fontWeight =
-                                                                                        FontWeight
-                                                                                                .Medium,
-                                                                                color =
-                                                                                        MaterialTheme
-                                                                                                .colorScheme
-                                                                                                .primary
-                                                                        )
-                                                                        Text(
-                                                                                text =
-                                                                                        currentModelDisplayName,
-                                                                                style =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium,
-                                                                                color =
-                                                                                        MaterialTheme
-                                                                                                .colorScheme
-                                                                                                .onSurfaceVariant
-                                                                        )
-                                                                }
-                                                                Icon(
-                                                                        imageVector =
-                                                                                Icons.Default
-                                                                                        .Edit, // Or
-                                                                        // a
-                                                                        // dropdown arrow if
-                                                                        // preferred
-                                                                        contentDescription =
-                                                                                "Change AI Model",
-                                                                        tint =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .primary
-                                                                )
-                                                        }
-                                                }
-                                        }
-                                }
-
-                                item {
-                                        SettingsSection(title = "Summary Length") {
-                                                Column(
-                                                        verticalArrangement =
-                                                                Arrangement.spacedBy(12.dp)
-                                                ) {
-                                                        Text(
-                                                                text =
-                                                                        "Length: ${getLengthLabel(summaryLengthSliderPosition)}",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .bodyMedium,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onSurface
-                                                        )
-
-                                                        Slider(
-                                                                value =
-                                                                        summaryLengthSliderPosition
-                                                                                .toFloat(),
-                                                                onValueChange = {
-                                                                        summaryLengthSliderPosition =
-                                                                                it.toInt()
-                                                                },
-                                                                valueRange = 1f..5f,
-                                                                modifier = Modifier.fillMaxWidth()
-                                                        )
-
-                                                        Row(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                horizontalArrangement =
-                                                                        Arrangement.SpaceBetween
-                                                        ) {
-                                                                Text(
-                                                                        text = "Brief",
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .labelSmall,
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onSurfaceVariant
-                                                                )
-                                                                Text(
-                                                                        text = "Detailed",
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .labelSmall,
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onSurfaceVariant
-                                                                )
-                                                        }
-                                                }
-                                        }
-                                }
-
-                                item {
-                                        SettingsSection(title = "Summary Prompt") {
-                                                Column(
-                                                        verticalArrangement =
-                                                                Arrangement.spacedBy(12.dp)
-                                                ) {
-                                                        // Prompt preview card that opens the dialog
-                                                        // when clicked
+                                                        // AI Model Selection Card (Moved here)
+                                                        val currentModelDisplayName =
+                                                                settingsViewModel.availableModels[
+                                                                        selectedModel]
+                                                                        ?: selectedModel
                                                         ElevatedCard(
                                                                 modifier =
                                                                         Modifier.fillMaxWidth()
                                                                                 .clickable {
-                                                                                        tempPromptInput =
-                                                                                                summaryPromptInput
-                                                                                        showPromptDialog =
+                                                                                        showModelSelectionDialog =
                                                                                                 true
                                                                                 },
                                                                 elevation =
@@ -715,22 +516,18 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 Arrangement
                                                                                         .SpaceBetween,
                                                                         verticalAlignment =
-                                                                                Alignment.Top
+                                                                                Alignment
+                                                                                        .CenterVertically
                                                                 ) {
                                                                         Column(
                                                                                 modifier =
                                                                                         Modifier.weight(
                                                                                                 1f
-                                                                                        ),
-                                                                                verticalArrangement =
-                                                                                        Arrangement
-                                                                                                .spacedBy(
-                                                                                                        8.dp
-                                                                                                )
+                                                                                        )
                                                                         ) {
                                                                                 Text(
                                                                                         text =
-                                                                                                "Custom Prompt",
+                                                                                                "AI Model",
                                                                                         style =
                                                                                                 MaterialTheme
                                                                                                         .typography
@@ -745,55 +542,27 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 )
                                                                                 Text(
                                                                                         text =
-                                                                                                summaryPromptInput
-                                                                                                        .ifEmpty {
-                                                                                                                "Tap to set a custom prompt"
-                                                                                                        },
+                                                                                                currentModelDisplayName,
                                                                                         style =
                                                                                                 MaterialTheme
                                                                                                         .typography
-                                                                                                        .bodySmall,
+                                                                                                        .bodyMedium,
                                                                                         color =
-                                                                                                if (summaryPromptInput
-                                                                                                                .isEmpty()
-                                                                                                )
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onSurfaceVariant
-                                                                                                                .copy(
-                                                                                                                        alpha =
-                                                                                                                                0.6f
-                                                                                                                )
-                                                                                                else
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onSurfaceVariant,
-                                                                                        maxLines =
-                                                                                                3,
-                                                                                        overflow =
-                                                                                                TextOverflow
-                                                                                                        .Ellipsis,
-                                                                                        lineHeight =
                                                                                                 MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodySmall
-                                                                                                        .lineHeight
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
                                                                                 )
                                                                         }
                                                                         Icon(
                                                                                 imageVector =
                                                                                         Icons.Default
-                                                                                                .Edit,
+                                                                                                .Edit, // Or a dropdown arrow if preferred
                                                                                 contentDescription =
-                                                                                        "Edit Prompt",
+                                                                                        "Change AI Model",
                                                                                 tint =
                                                                                         MaterialTheme
                                                                                                 .colorScheme
-                                                                                                .primary,
-                                                                                modifier =
-                                                                                        Modifier.size(
-                                                                                                20.dp
-                                                                                        )
+                                                                                                .primary
                                                                         )
                                                                 }
                                                         }
@@ -802,7 +571,246 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 }
 
                                 item {
-                                        SettingsSection(title = "Bottom Sheet Appearance") {
+                                        Spacer(Modifier.height(8.dp)) // Added spacer
+                                        SettingsSection(title = "Summary Settings") {
+                                                Column(
+                                                        verticalArrangement =
+                                                                Arrangement.spacedBy(16.dp)
+                                                ) { // Main column for the new section
+                                                        // === New Card structure for "Summary
+                                                        // Length" section ===
+                                                        OutlinedCard(
+                                                                modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                                Column(
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        16.dp
+                                                                                ),
+                                                                        verticalArrangement =
+                                                                                Arrangement
+                                                                                        .spacedBy(
+                                                                                                8.dp
+                                                                                        ) // Spacing
+                                                                        // inside
+                                                                        // the
+                                                                        // card
+                                                                        ) {
+                                                                        Row(
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth(),
+                                                                                horizontalArrangement =
+                                                                                        Arrangement
+                                                                                                .SpaceBetween,
+                                                                                verticalAlignment =
+                                                                                        Alignment
+                                                                                                .CenterVertically
+                                                                        ) {
+                                                                                Text(
+                                                                                        "Summary Length",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .titleSmall,
+                                                                                        fontWeight =
+                                                                                                FontWeight
+                                                                                                        .Medium,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurface // Or .primary for more emphasis
+                                                                                )
+                                                                                Text(
+                                                                                        getLengthLabel(
+                                                                                                summaryLengthSliderPosition
+                                                                                        ),
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .bodyMedium,
+                                                                                        fontWeight =
+                                                                                                FontWeight
+                                                                                                        .Medium, // Make current value stand out a bit
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .primary
+                                                                                )
+                                                                        }
+                                                                        Slider(
+                                                                                value =
+                                                                                        summaryLengthSliderPosition
+                                                                                                .toFloat(),
+                                                                                onValueChange = {
+                                                                                        summaryLengthSliderPosition =
+                                                                                                it.toInt()
+                                                                                },
+                                                                                valueRange = 1f..5f,
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth()
+                                                                        )
+                                                                        Row(
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth(),
+                                                                                horizontalArrangement =
+                                                                                        Arrangement
+                                                                                                .SpaceBetween
+                                                                        ) {
+                                                                                Text(
+                                                                                        text =
+                                                                                                "Brief",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .labelSmall,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
+                                                                                )
+                                                                                Text(
+                                                                                        text =
+                                                                                                "Detailed",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .labelSmall,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
+                                                                                )
+                                                                        }
+                                                                }
+                                                        }
+                                                        // === End of new Card structure for
+                                                        // "Summary Length" section ===
+
+                                                        // === Content from old "Summary Prompt"
+                                                        // section ===
+                                                        Column(
+                                                                verticalArrangement =
+                                                                        Arrangement.spacedBy(12.dp)
+                                                        ) {
+                                                                ElevatedCard(
+                                                                        modifier =
+                                                                                Modifier.fillMaxWidth()
+                                                                                        .clickable {
+                                                                                                tempPromptInput =
+                                                                                                        summaryPromptInput
+                                                                                                showPromptDialog =
+                                                                                                        true
+                                                                                        },
+                                                                        elevation =
+                                                                                CardDefaults
+                                                                                        .elevatedCardElevation(
+                                                                                                defaultElevation =
+                                                                                                        2.dp
+                                                                                        )
+                                                                ) {
+                                                                        Row(
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth()
+                                                                                                .padding(
+                                                                                                        16.dp
+                                                                                                ),
+                                                                                horizontalArrangement =
+                                                                                        Arrangement
+                                                                                                .SpaceBetween,
+                                                                                verticalAlignment =
+                                                                                        Alignment
+                                                                                                .Top
+                                                                        ) {
+                                                                                Column(
+                                                                                        modifier =
+                                                                                                Modifier.weight(
+                                                                                                        1f
+                                                                                                ),
+                                                                                        verticalArrangement =
+                                                                                                Arrangement
+                                                                                                        .spacedBy(
+                                                                                                                8.dp
+                                                                                                        )
+                                                                                ) {
+                                                                                        Text(
+                                                                                                text =
+                                                                                                        "Custom Prompt",
+                                                                                                style =
+                                                                                                        MaterialTheme
+                                                                                                                .typography
+                                                                                                                .titleSmall,
+                                                                                                fontWeight =
+                                                                                                        FontWeight
+                                                                                                                .Medium,
+                                                                                                color =
+                                                                                                        MaterialTheme
+                                                                                                                .colorScheme
+                                                                                                                .primary
+                                                                                        )
+                                                                                        Text(
+                                                                                                text =
+                                                                                                        summaryPromptInput
+                                                                                                                .ifEmpty {
+                                                                                                                        "Tap to set a custom prompt"
+                                                                                                                },
+                                                                                                style =
+                                                                                                        MaterialTheme
+                                                                                                                .typography
+                                                                                                                .bodySmall,
+                                                                                                color =
+                                                                                                        if (summaryPromptInput
+                                                                                                                        .isEmpty()
+                                                                                                        )
+                                                                                                                MaterialTheme
+                                                                                                                        .colorScheme
+                                                                                                                        .onSurfaceVariant
+                                                                                                                        .copy(
+                                                                                                                                alpha =
+                                                                                                                                        0.6f
+                                                                                                                        )
+                                                                                                        else
+                                                                                                                MaterialTheme
+                                                                                                                        .colorScheme
+                                                                                                                        .onSurfaceVariant,
+                                                                                                maxLines =
+                                                                                                        3,
+                                                                                                overflow =
+                                                                                                        TextOverflow
+                                                                                                                .Ellipsis,
+                                                                                                lineHeight =
+                                                                                                        MaterialTheme
+                                                                                                                .typography
+                                                                                                                .bodySmall
+                                                                                                                .lineHeight
+                                                                                        )
+                                                                                }
+                                                                                Icon(
+                                                                                        imageVector =
+                                                                                                Icons.Default
+                                                                                                        .Edit,
+                                                                                        contentDescription =
+                                                                                                "Edit Prompt",
+                                                                                        tint =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .primary,
+                                                                                        modifier =
+                                                                                                Modifier.size(
+                                                                                                        20.dp
+                                                                                                )
+                                                                                )
+                                                                        }
+                                                                }
+                                                        }
+                                                        // === End of content from old "Summary
+                                                        // Prompt" section ===
+                                                }
+                                        }
+                                }
+
+                                item {
+                                        Spacer(Modifier.height(8.dp)) // Added spacer
+                                        SettingsSection(title = "Appearance") {
                                                 Column(
                                                         verticalArrangement =
                                                                 Arrangement.spacedBy(16.dp)
@@ -1131,9 +1139,9 @@ private fun PromptEditDialog(
                                 OutlinedTextField(
                                         value = editedPrompt,
                                         onValueChange = { editedPrompt = it },
-                                        label = { Text("Custom Prompt") },
+                                        label = { Text("Prompt") },
                                         placeholder = {
-                                                Text("Enter your custom summarization prompt...")
+                                                Text("Enter your summarization prompt...")
                                         },
                                         modifier = Modifier.fillMaxWidth().height(200.dp),
                                         minLines = 8,
@@ -1306,7 +1314,8 @@ private fun BottomSheetThemeSelection(
 
                 ExposedDropdownMenuBox(
                         expanded = isSystemThemeDropdownExpanded,
-                        onExpandedChange = { /* Clicking the card toggles it, not the box itself directly */
+                        onExpandedChange = {
+                                isSystemThemeDropdownExpanded = !isSystemThemeDropdownExpanded
                         },
                         modifier = Modifier.fillMaxWidth()
                 ) {
@@ -1316,10 +1325,7 @@ private fun BottomSheetThemeSelection(
                                 description = "Adapts to your system's color settings.",
                                 themeColorCircle = systemThemeDisplayColor,
                                 isSelected = systemThemeIsActive,
-                                onClick = {
-                                        isSystemThemeDropdownExpanded =
-                                                !isSystemThemeDropdownExpanded
-                                },
+                                onClick = {},
                                 isDropdownTrigger = true,
                                 isDropdownExpanded = isSystemThemeDropdownExpanded
                         )
@@ -1447,24 +1453,28 @@ private fun StyledThemeOptionCard(
                                         )
                                 }
                         }
-                        Spacer(Modifier.width(8.dp)) // Spacer between text and circle
+                        Spacer(
+                                Modifier.width(16.dp)
+                        ) // Increased spacer for better separation before right-aligned elements
+
+                        if (isDropdownTrigger) {
+                                Icon(
+                                        imageVector =
+                                                if (isDropdownExpanded) Icons.Filled.ArrowDropUp
+                                                else Icons.Filled.ArrowDropDown,
+                                        contentDescription = "Toggle system theme options"
+                                        // Tint will be inherited from Card's contentColor via
+                                        // LocalContentColor
+                                        )
+                                Spacer(Modifier.width(8.dp)) // Spacer between arrow and circle
+                        }
+
                         Surface(
                                 modifier = Modifier.size(32.dp),
                                 shape = CircleShape,
                                 color = themeColorCircle,
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {}
-                        if (isDropdownTrigger) {
-                                Spacer(Modifier.width(8.dp)) // Spacer between circle and arrow
-                                Icon(
-                                        imageVector =
-                                                if (isDropdownExpanded) Icons.Filled.ArrowDropUp
-                                                else Icons.Filled.ArrowDropDown,
-                                        contentDescription = "Toggle system theme options",
-                                        // Tint will be inherited from Card's contentColor via
-                                        // LocalContentColor
-                                        )
-                        }
                 }
         }
 }
@@ -1653,6 +1663,47 @@ private fun ModelSelectionDialog(
                 confirmButton = {
                         Button(onClick = { onConfirm(tempSelectedModelId) }) { Text("Confirm") }
                 },
+                dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ApiKeyEditDialog(
+        currentApiKey: String,
+        onSave: (String) -> Unit,
+        onDismiss: () -> Unit
+) {
+        var tempApiKey by remember { mutableStateOf(currentApiKey) }
+
+        AlertDialog(
+                onDismissRequest = onDismiss,
+                icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit API Key") },
+                title = { Text("Edit Gemini API Key") },
+                text = {
+                        OutlinedTextField(
+                                value = tempApiKey,
+                                onValueChange = { tempApiKey = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("API Key") },
+                                placeholder = { Text("Enter your Gemini API key") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions =
+                                        KeyboardOptions(keyboardType = KeyboardType.Password),
+                                trailingIcon = {
+                                        if (tempApiKey.isNotEmpty()) {
+                                                IconButton(onClick = { tempApiKey = "" }) {
+                                                        Icon(
+                                                                imageVector = Icons.Default.Clear,
+                                                                contentDescription = "Clear API Key"
+                                                        )
+                                                }
+                                        }
+                                }
+                        )
+                },
+                confirmButton = { Button(onClick = { onSave(tempApiKey) }) { Text("Save") } },
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
         )
 }

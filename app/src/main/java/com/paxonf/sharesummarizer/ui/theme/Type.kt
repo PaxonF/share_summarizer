@@ -1,8 +1,11 @@
 package com.paxonf.sharesummarizer.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
@@ -34,3 +37,33 @@ val Typography =
                                 letterSpacing = 0.5.sp
                         )
         )
+
+@OptIn(ExperimentalTextApi::class)
+// Define RobotoFlex FontFamily
+val RobotoFlex =
+        FontFamily(
+                Font(
+                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        weight = FontWeight.Normal,
+                        variationSettings =
+                                FontVariation.Settings(
+                                        FontVariation.weight(400) // Normal is 400
+                                )
+                ),
+                Font(
+                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        weight = FontWeight.Bold, // Bold is 700
+                        variationSettings = FontVariation.Settings(FontVariation.weight(700))
+                ),
+                Font(
+                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        weight = FontWeight.ExtraBold, // ExtraBold is 800
+                        variationSettings =
+                                FontVariation.Settings(
+                                        FontVariation.weight(800),
+                                        FontVariation.width(125f)
+                                )
+                )
+                // Add other weights if needed and if roboto_flex.ttf is a variable font supporting
+                // them
+                )
