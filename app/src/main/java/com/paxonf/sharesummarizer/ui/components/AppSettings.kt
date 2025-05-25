@@ -12,6 +12,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
@@ -37,6 +40,21 @@ import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
 import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
 import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
 
+// Theme option identifiers
+private const val THEME_OPTION_SYSTEM_BACKGROUND = "system_background"
+private const val THEME_OPTION_SYSTEM_PRIMARY = "system_primary"
+private const val THEME_OPTION_SYSTEM_SECONDARY = "system_secondary"
+private const val THEME_OPTION_SYSTEM_TERTIARY = "system_tertiary"
+private const val THEME_OPTION_LIGHT = "light"
+private const val THEME_OPTION_SEPIA = "sepia"
+private const val THEME_OPTION_DARK = "dark"
+private const val THEME_OPTION_CUSTOM = "custom"
+
+// Custom theme colors
+private val LightThemeColor = Color.White
+private val SepiaThemeColor = Color(0xFFF5EEDC)
+private val DarkThemeColor = Color(0xFF121212)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
@@ -54,7 +72,28 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
         var selectedColorOption by remember {
-                mutableStateOf(settingsViewModel.bottomSheetColorOption)
+                mutableStateOf(
+                        when (settingsViewModel.bottomSheetColorOption) {
+                                "primary" -> THEME_OPTION_SYSTEM_PRIMARY
+                                "secondary" -> THEME_OPTION_SYSTEM_SECONDARY
+                                "tertiary" -> THEME_OPTION_SYSTEM_TERTIARY
+                                "custom" -> THEME_OPTION_CUSTOM
+                                // Handle cases where it might be already one of the new values
+                                THEME_OPTION_SYSTEM_BACKGROUND,
+                                THEME_OPTION_SYSTEM_PRIMARY,
+                                THEME_OPTION_SYSTEM_SECONDARY,
+                                THEME_OPTION_SYSTEM_TERTIARY,
+                                THEME_OPTION_LIGHT,
+                                THEME_OPTION_SEPIA,
+                                THEME_OPTION_DARK ->
+                                        settingsViewModel.bottomSheetColorOption.takeIf {
+                                                it.isNotBlank()
+                                        }
+                                                ?: THEME_OPTION_SYSTEM_BACKGROUND
+                                else -> THEME_OPTION_SYSTEM_BACKGROUND // Default for empty or
+                        // unrecognized
+                        }
+                )
         }
         var customColor by remember {
                 mutableStateOf(Color(settingsViewModel.customBottomSheetColor))
@@ -82,7 +121,26 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
         var initialColorOption by remember {
-                mutableStateOf(settingsViewModel.bottomSheetColorOption)
+                mutableStateOf(
+                        when (settingsViewModel.bottomSheetColorOption) {
+                                "primary" -> THEME_OPTION_SYSTEM_PRIMARY
+                                "secondary" -> THEME_OPTION_SYSTEM_SECONDARY
+                                "tertiary" -> THEME_OPTION_SYSTEM_TERTIARY
+                                "custom" -> THEME_OPTION_CUSTOM
+                                THEME_OPTION_SYSTEM_BACKGROUND,
+                                THEME_OPTION_SYSTEM_PRIMARY,
+                                THEME_OPTION_SYSTEM_SECONDARY,
+                                THEME_OPTION_SYSTEM_TERTIARY,
+                                THEME_OPTION_LIGHT,
+                                THEME_OPTION_SEPIA,
+                                THEME_OPTION_DARK ->
+                                        settingsViewModel.bottomSheetColorOption.takeIf {
+                                                it.isNotBlank()
+                                        }
+                                                ?: THEME_OPTION_SYSTEM_BACKGROUND
+                                else -> THEME_OPTION_SYSTEM_BACKGROUND
+                        }
+                )
         }
         var initialCustomColor by remember {
                 mutableStateOf(Color(settingsViewModel.customBottomSheetColor))
@@ -127,14 +185,12 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
 
         // Preview bottom sheet with example content
         if (showPreviewBottomSheet) {
-                val containerColor =
-                        when (selectedColorOption) {
-                                "primary" -> MaterialTheme.colorScheme.primaryContainer
-                                "secondary" -> MaterialTheme.colorScheme.secondaryContainer
-                                "tertiary" -> MaterialTheme.colorScheme.tertiaryContainer
-                                "custom" -> customColor
-                                else -> MaterialTheme.colorScheme.primaryContainer
-                        }
+                val (containerColorForSheet, _) =
+                        getThemeColors(
+                                selectedOption = selectedColorOption,
+                                customColor = customColor,
+                                materialColorScheme = MaterialTheme.colorScheme
+                        )
 
                 SummaryBottomSheet(
                         uiState =
@@ -145,7 +201,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 ),
                         onDismiss = { showPreviewBottomSheet = false },
                         onRetry = { /* No-op for preview */},
-                        containerColor = containerColor
+                        containerColor = containerColorForSheet
                 )
         }
 
@@ -176,40 +232,23 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                         },
                                         text = { Text("Preview") },
                                         containerColor =
-                                                when (selectedColorOption) {
-                                                        "primary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .primaryContainer
-                                                        "secondary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .secondaryContainer
-                                                        "tertiary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .tertiaryContainer
-                                                        "custom" -> customColor
-                                                        else ->
-                                                                MaterialTheme.colorScheme
-                                                                        .primaryContainer
-                                                },
+                                                getThemeColors(
+                                                                selectedOption =
+                                                                        selectedColorOption,
+                                                                customColor = customColor,
+                                                                materialColorScheme =
+                                                                        MaterialTheme.colorScheme
+                                                        )
+                                                        .first,
                                         contentColor =
-                                                when (selectedColorOption) {
-                                                        "primary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .onPrimaryContainer
-                                                        "secondary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .onSecondaryContainer
-                                                        "tertiary" ->
-                                                                MaterialTheme.colorScheme
-                                                                        .onTertiaryContainer
-                                                        "custom" ->
-                                                                if (customColor.luminance() > 0.5f)
-                                                                        Color.Black
-                                                                else Color.White
-                                                        else ->
-                                                                MaterialTheme.colorScheme
-                                                                        .onPrimaryContainer
-                                                }
+                                                getThemeColors(
+                                                                selectedOption =
+                                                                        selectedColorOption,
+                                                                customColor = customColor,
+                                                                materialColorScheme =
+                                                                        MaterialTheme.colorScheme
+                                                        )
+                                                        .second
                                 )
                         }
                 }
@@ -472,7 +511,10 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                 },
                                                                 modifier =
                                                                         Modifier.fillMaxWidth()
-                                                                                .menuAnchor(),
+                                                                                .menuAnchor(
+                                                                                        MenuAnchorType
+                                                                                                .PrimaryNotEditable
+                                                                                ),
                                                                 colors =
                                                                         ExposedDropdownMenuDefaults
                                                                                 .outlinedTextFieldColors()
@@ -702,7 +744,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 ) {
                                                         Text(
                                                                 text =
-                                                                        "Choose the color theme for the summary bottom sheet",
+                                                                        "Choose the color theme for the summary bottom sheet.",
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .bodyMedium,
@@ -711,75 +753,23 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 .onSurfaceVariant
                                                         )
 
-                                                        // Color options using the correct Material
-                                                        // You options
-                                                        Column(
-                                                                verticalArrangement =
-                                                                        Arrangement.spacedBy(8.dp)
-                                                        ) {
-                                                                settingsViewModel
-                                                                        .availableColorOptions
-                                                                        .forEach {
-                                                                                (
-                                                                                        optionId,
-                                                                                        displayName)
-                                                                                ->
-                                                                                ColorOption(
-                                                                                        title =
-                                                                                                displayName,
-                                                                                        description =
-                                                                                                when (optionId
-                                                                                                ) {
-                                                                                                        "primary" ->
-                                                                                                                "Uses your device's primary accent color"
-                                                                                                        "secondary" ->
-                                                                                                                "Uses your device's secondary accent color"
-                                                                                                        "tertiary" ->
-                                                                                                                "Uses your device's tertiary accent color"
-                                                                                                        "custom" ->
-                                                                                                                "Choose your own custom color"
-                                                                                                        else ->
-                                                                                                                ""
-                                                                                                },
-                                                                                        color =
-                                                                                                when (optionId
-                                                                                                ) {
-                                                                                                        "primary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .primaryContainer
-                                                                                                        "secondary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .secondaryContainer
-                                                                                                        "tertiary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .tertiaryContainer
-                                                                                                        "custom" ->
-                                                                                                                customColor
-                                                                                                        else ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .surface
-                                                                                                },
-                                                                                        isSelected =
-                                                                                                selectedColorOption ==
-                                                                                                        optionId,
-                                                                                        onClick = {
-                                                                                                selectedColorOption =
-                                                                                                        optionId
-                                                                                        }
-                                                                                )
-                                                                        }
-                                                        }
+                                                        BottomSheetThemeSelection(
+                                                                currentThemeOption =
+                                                                        selectedColorOption,
+                                                                onThemeOptionSelected = {
+                                                                        selectedColorOption = it
+                                                                },
+                                                                customColorValue = customColor,
+                                                                materialColorScheme =
+                                                                        MaterialTheme.colorScheme
+                                                        )
 
                                                         // Custom color picker (only shown when
                                                         // custom is selected)
                                                         AnimatedVisibility(
                                                                 visible =
                                                                         selectedColorOption ==
-                                                                                "custom",
+                                                                                THEME_OPTION_CUSTOM,
                                                                 enter =
                                                                         expandVertically() +
                                                                                 fadeIn(),
@@ -1155,29 +1145,202 @@ private fun PromptEditDialog(
         )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColorOption(
+private fun BottomSheetThemeSelection(
+        currentThemeOption: String,
+        onThemeOptionSelected: (String) -> Unit,
+        customColorValue: Color,
+        materialColorScheme: ColorScheme
+) {
+        var isSystemThemeDropdownExpanded by remember { mutableStateOf(false) }
+
+        val systemThemeSubOptions =
+                mapOf(
+                        THEME_OPTION_SYSTEM_BACKGROUND to "Background",
+                        THEME_OPTION_SYSTEM_PRIMARY to "Primary",
+                        THEME_OPTION_SYSTEM_SECONDARY to "Secondary",
+                        THEME_OPTION_SYSTEM_TERTIARY to "Tertiary"
+                )
+
+        val systemThemeDescriptions =
+                mapOf(
+                        THEME_OPTION_SYSTEM_BACKGROUND to
+                                "Matches your device's default background.",
+                        THEME_OPTION_SYSTEM_PRIMARY to "Uses your device's primary accent color.",
+                        THEME_OPTION_SYSTEM_SECONDARY to
+                                "Uses your device's secondary accent color.",
+                        THEME_OPTION_SYSTEM_TERTIARY to "Uses your device's tertiary accent color."
+                )
+
+        data class DirectThemeInfo(
+                val id: String,
+                val title: String,
+                val description: String,
+                val color: Color
+        )
+
+        val directThemeOptions =
+                listOf(
+                        DirectThemeInfo(
+                                THEME_OPTION_LIGHT,
+                                "Light Theme",
+                                "A clean, bright interface.",
+                                LightThemeColor
+                        ),
+                        DirectThemeInfo(
+                                THEME_OPTION_SEPIA,
+                                "Sepia Theme",
+                                "A warm, paper-like feel for comfortable reading.",
+                                SepiaThemeColor
+                        ),
+                        DirectThemeInfo(
+                                THEME_OPTION_DARK,
+                                "Dark Theme",
+                                "Easy on the eyes in low light conditions.",
+                                DarkThemeColor
+                        ),
+                        DirectThemeInfo(
+                                THEME_OPTION_CUSTOM,
+                                "Custom Color",
+                                "Choose your own unique color.",
+                                customColorValue
+                        )
+                )
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { // Increased spacing for cards
+                // System Theme Dropdown
+                val systemThemeIsActive = currentThemeOption.startsWith("system_")
+                val currentSystemSubOption =
+                        if (systemThemeIsActive) currentThemeOption
+                        else THEME_OPTION_SYSTEM_BACKGROUND
+                val systemThemeDisplayTitle =
+                        if (systemThemeIsActive) {
+                                "System Theme: ${systemThemeSubOptions[currentSystemSubOption] ?: "Background"}"
+                        } else {
+                                "System Theme"
+                        }
+                val systemThemeDisplayColor =
+                        getThemeColors(
+                                        currentSystemSubOption,
+                                        customColorValue,
+                                        materialColorScheme
+                                )
+                                .first
+
+                ExposedDropdownMenuBox(
+                        expanded = isSystemThemeDropdownExpanded,
+                        onExpandedChange = { /* Clicking the card toggles it, not the box itself directly */
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                ) {
+                        StyledThemeOptionCard(
+                                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                                title = systemThemeDisplayTitle,
+                                description = "Adapts to your system's color settings.",
+                                themeColorCircle = systemThemeDisplayColor,
+                                isSelected = systemThemeIsActive,
+                                onClick = {
+                                        isSystemThemeDropdownExpanded =
+                                                !isSystemThemeDropdownExpanded
+                                },
+                                isDropdownTrigger = true,
+                                isDropdownExpanded = isSystemThemeDropdownExpanded
+                        )
+
+                        ExposedDropdownMenu(
+                                expanded = isSystemThemeDropdownExpanded,
+                                onDismissRequest = { isSystemThemeDropdownExpanded = false },
+                                modifier = Modifier.fillMaxWidth()
+                        ) {
+                                systemThemeSubOptions.forEach { (optionId, displayName) ->
+                                        val (optionContainerColor, _) =
+                                                getThemeColors(
+                                                        optionId,
+                                                        customColorValue,
+                                                        materialColorScheme
+                                                )
+                                        DropdownMenuItem(
+                                                text = { Text(displayName) },
+                                                onClick = {
+                                                        onThemeOptionSelected(optionId)
+                                                        isSystemThemeDropdownExpanded = false
+                                                },
+                                                leadingIcon = { // Add color preview to dropdown
+                                                        // item
+                                                        Surface(
+                                                                modifier = Modifier.size(24.dp),
+                                                                shape = CircleShape,
+                                                                color = optionContainerColor,
+                                                                border =
+                                                                        BorderStroke(
+                                                                                1.dp,
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .outline
+                                                                        )
+                                                        ) {}
+                                                },
+                                                trailingIcon =
+                                                        if (currentThemeOption == optionId) {
+                                                                {
+                                                                        Icon(
+                                                                                Icons.Filled.Check,
+                                                                                contentDescription =
+                                                                                        "Selected"
+                                                                        )
+                                                                }
+                                                        } else null,
+                                                colors =
+                                                        MenuDefaults.itemColors(
+                                                                // Optional: customize item colors
+                                                                // if needed
+                                                                )
+                                        )
+                                }
+                        }
+                }
+
+                // Direct Theme Buttons
+                directThemeOptions.forEach { themeInfo ->
+                        StyledThemeOptionCard(
+                                title = themeInfo.title,
+                                description = themeInfo.description,
+                                themeColorCircle =
+                                        if (themeInfo.id == THEME_OPTION_CUSTOM) customColorValue
+                                        else themeInfo.color,
+                                isSelected = currentThemeOption == themeInfo.id,
+                                onClick = { onThemeOptionSelected(themeInfo.id) }
+                        )
+                }
+        }
+}
+
+@Composable
+private fun StyledThemeOptionCard(
         title: String,
-        description: String,
-        color: Color,
+        description: String?,
+        themeColorCircle: Color, // Color for the small preview circle
         isSelected: Boolean,
-        onClick: () -> Unit
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier, // Allow passing a modifier, e.g. for menuAnchor
+        isDropdownTrigger: Boolean = false, // To show dropdown arrow
+        isDropdownExpanded: Boolean = false // State of dropdown for arrow direction
 ) {
         Card(
-                modifier = Modifier.fillMaxWidth().clickable { onClick() },
+                modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
                 colors =
                         CardDefaults.cardColors(
                                 containerColor =
-                                        if (isSelected) {
-                                                MaterialTheme.colorScheme.primaryContainer
-                                        } else {
-                                                MaterialTheme.colorScheme.surface
-                                        }
+                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor =
+                                        if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                 border =
-                        if (isSelected) {
-                                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        } else null
+                        if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                        else CardDefaults.outlinedCardBorder(enabled = true)
         ) {
                 Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -1191,35 +1354,78 @@ private fun ColorOption(
                                 Text(
                                         text = title,
                                         style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Medium,
-                                        color =
-                                                if (isSelected) {
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                                } else {
-                                                        MaterialTheme.colorScheme.onSurface
-                                                }
+                                        fontWeight = FontWeight.Medium
                                 )
-                                Text(
-                                        text = description,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color =
-                                                if (isSelected) {
-                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                if (description != null) {
+                                        Text(
+                                                text = description,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color =
+                                                        (if (isSelected)
+                                                                        MaterialTheme.colorScheme
+                                                                                .onPrimaryContainer
+                                                                else
+                                                                        MaterialTheme.colorScheme
+                                                                                .onSurfaceVariant)
                                                                 .copy(alpha = 0.7f)
-                                                } else {
-                                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
-                                )
+                                        )
+                                }
                         }
-
+                        Spacer(Modifier.width(8.dp)) // Spacer between text and circle
                         Surface(
                                 modifier = Modifier.size(32.dp),
                                 shape = CircleShape,
-                                color = color,
+                                color = themeColorCircle,
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {}
+                        if (isDropdownTrigger) {
+                                Spacer(Modifier.width(8.dp)) // Spacer between circle and arrow
+                                Icon(
+                                        imageVector =
+                                                if (isDropdownExpanded) Icons.Filled.ArrowDropUp
+                                                else Icons.Filled.ArrowDropDown,
+                                        contentDescription = "Toggle system theme options",
+                                        // Tint will be inherited from Card's contentColor via
+                                        // LocalContentColor
+                                        )
+                        }
                 }
         }
+}
+
+private fun getThemeColors(
+        selectedOption: String,
+        customColor: Color,
+        materialColorScheme: ColorScheme
+): Pair<Color, Color> { // Returns (containerColor, contentColor)
+        val containerColor =
+                when (selectedOption) {
+                        THEME_OPTION_SYSTEM_BACKGROUND -> materialColorScheme.background
+                        THEME_OPTION_SYSTEM_PRIMARY -> materialColorScheme.primaryContainer
+                        THEME_OPTION_SYSTEM_SECONDARY -> materialColorScheme.secondaryContainer
+                        THEME_OPTION_SYSTEM_TERTIARY -> materialColorScheme.tertiaryContainer
+                        THEME_OPTION_LIGHT -> LightThemeColor
+                        THEME_OPTION_SEPIA -> SepiaThemeColor
+                        THEME_OPTION_DARK -> DarkThemeColor
+                        THEME_OPTION_CUSTOM -> customColor
+                        else -> materialColorScheme.background // Default
+                }
+
+        val contentColor =
+                when (selectedOption) {
+                        THEME_OPTION_SYSTEM_BACKGROUND -> materialColorScheme.onBackground
+                        THEME_OPTION_SYSTEM_PRIMARY -> materialColorScheme.onPrimaryContainer
+                        THEME_OPTION_SYSTEM_SECONDARY -> materialColorScheme.onSecondaryContainer
+                        THEME_OPTION_SYSTEM_TERTIARY -> materialColorScheme.onTertiaryContainer
+                        THEME_OPTION_LIGHT,
+                        THEME_OPTION_SEPIA,
+                        THEME_OPTION_DARK,
+                        THEME_OPTION_CUSTOM -> {
+                                if (containerColor.luminance() > 0.5f) Color.Black else Color.White
+                        }
+                        else -> materialColorScheme.onBackground // Default
+                }
+        return Pair(containerColor, contentColor)
 }
 
 @Preview(showBackground = true)

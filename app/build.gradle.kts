@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material") // For icons
+    implementation("androidx.compose.material:material-icons-extended:1.6.8") // Added for more icons like ArrowDropUp
 
     // Android core dependencies
     implementation("androidx.core:core-ktx:1.12.0")
