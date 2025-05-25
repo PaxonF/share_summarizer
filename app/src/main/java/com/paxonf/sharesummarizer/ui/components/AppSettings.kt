@@ -150,7 +150,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         }
 
         Scaffold(
-                topBar = { TopAppBar(title = { Text("App Settings") }) },
+                topBar = { TopAppBar(title = { Text("Share Summarizer") }) },
                 floatingActionButton = {
                         // Animate FAB visibility - hide when there are unsaved changes
                         AnimatedVisibility(
@@ -233,7 +233,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 start = 16.dp,
                                                 end = 16.dp,
                                                 top = 16.dp,
-                                                bottom = if (hasChanges) 100.dp else 16.dp
+                                                bottom = 16.dp // No extra padding needed
                                         ),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
@@ -845,7 +845,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 }
                         }
 
-                        // Sticky bottom save card
+                        // Floating save card that slides up from bottom
                         AnimatedVisibility(
                                 visible = hasChanges,
                                 enter =
@@ -861,9 +861,15 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 modifier = Modifier.align(Alignment.BottomCenter)
                         ) {
                                 Card(
-                                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                        modifier =
+                                                Modifier.fillMaxWidth()
+                                                        .padding(horizontal = 16.dp)
+                                                        .padding(bottom = 16.dp)
+                                                        .navigationBarsPadding(),
                                         elevation =
-                                                CardDefaults.cardElevation(defaultElevation = 8.dp),
+                                                CardDefaults.cardElevation(
+                                                        defaultElevation = 12.dp
+                                                ),
                                         colors =
                                                 CardDefaults.cardColors(
                                                         containerColor =

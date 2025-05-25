@@ -10,8 +10,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -43,18 +41,7 @@ fun ShareSummarizerTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Make status bar transparent
-            window.statusBarColor = Color.Transparent.toArgb()
-            // Enable edge-to-edge experience
             WindowCompat.setDecorFitsSystemWindows(window, false)
-            // Set status bar icons to be visible against any background
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-            // For Android 8.0+ set the navigation bar color to follow the theme
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                window.navigationBarColor = Color.Transparent.toArgb()
-                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars =
-                        !darkTheme
-            }
         }
     }
 

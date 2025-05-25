@@ -1,6 +1,5 @@
 package com.paxonf.sharesummarizer.ui.components
 
-import android.webkit.WebView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,9 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
@@ -33,14 +35,17 @@ fun SummaryBottomSheet(
 
         ModalBottomSheet(
                 onDismissRequest = onDismiss,
-                modifier = Modifier.fillMaxHeight(0.9f),
+                modifier = Modifier.fillMaxWidth(),
                 scrimColor = Color.Transparent,
                 containerColor = containerColor
         ) {
                 Column(
                         modifier =
                                 Modifier.fillMaxWidth()
-                                        .fillMaxHeight()
+                                        .heightIn(
+                                                max = 700.dp
+                                        ) // Maximum height but allows natural sizing
+                                        .navigationBarsPadding() // Handle navigation bar properly
                                         .padding(
                                                 start = 16.dp,
                                                 end = 16.dp,
@@ -87,65 +92,13 @@ fun SummaryBottomSheet(
                                 uiState.summary.isNotEmpty() -> {
                                         val summary = uiState.summary.trim()
 
-                                        // Create the complete HTML with markdown parsing and
-                                        // styling
-                                        // Pass current theme colors
-                                        val styledHtml =
-                                                generateStyledHtmlFromMarkdown(
-                                                        summary,
-                                                        textColor = textColor
-                                                )
-
-                                        // Use WebView instead of TextView which handles HTML
-                                        // content better
-                                        AndroidView(
+                                        // Parse and display markdown content using native Compose
+                                        MarkdownText(
+                                                markdown = summary,
                                                 modifier =
                                                         Modifier.fillMaxWidth()
-                                                                .padding(horizontal = 8.dp)
-                                                                .heightIn(min = 200.dp),
-                                                factory = { context ->
-                                                        WebView(context).apply {
-                                                                // Disable scrolling in the WebView
-                                                                // since we have a parent scroller
-                                                                isVerticalScrollBarEnabled = false
-                                                                isHorizontalScrollBarEnabled = false
-
-                                                                // Make WebView background
-                                                                // transparent to show the parent
-                                                                // background
-                                                                setBackgroundColor(
-                                                                        android.graphics.Color
-                                                                                .TRANSPARENT
-                                                                )
-
-                                                                // Configure WebView settings
-                                                                settings.apply {
-                                                                        javaScriptEnabled = false
-                                                                        loadWithOverviewMode = true
-                                                                        useWideViewPort = true
-                                                                        defaultFontSize = 16
-
-                                                                        // Enable text selection and
-                                                                        // copying
-                                                                        setSupportMultipleWindows(
-                                                                                false
-                                                                        )
-                                                                }
-
-                                                                // Enable long-press selection and
-                                                                // context menus
-                                                                isLongClickable = true
-
-                                                                // Load the HTML content directly
-                                                                loadDataWithBaseURL(
-                                                                        null,
-                                                                        styledHtml,
-                                                                        "text/html",
-                                                                        "UTF-8",
-                                                                        null
-                                                                )
-                                                        }
-                                                }
+                                                                .padding(horizontal = 8.dp),
+                                                color = textColor
                                         )
 
                                         Spacer(modifier = Modifier.height(16.dp))
@@ -160,6 +113,127 @@ fun SummaryBottomSheet(
                         }
                 }
         }
+}
+
+@Composable
+private fun MarkdownText(
+        markdown: String,
+        modifier: Modifier = Modifier,
+        color: Color = MaterialTheme.colorScheme.onSurface
+) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Simple markdown parsing for the most common elements
+                val lines = markdown.lines()
+                var i = 0
+
+                while (i < lines.size) {
+                        val line = lines[i].trim()
+
+                        when {
+                                line.startsWith("# ") -> {
+                                        Text(
+                                                text = line.substring(2),
+                                                style = MaterialTheme.typography.headlineMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = color,
+                                                modifier = Modifier.padding(vertical = 4.dp)
+                                        )
+                                }
+                                line.startsWith("## ") -> {
+                                        Text(
+                                                text = line.substring(3),
+                                                style = MaterialTheme.typography.headlineSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = color,
+                                                modifier = Modifier.padding(vertical = 4.dp)
+                                        )
+                                }
+                                line.startsWith("### ") -> {
+                                        Text(
+                                                text = line.substring(4),
+                                                style = MaterialTheme.typography.titleLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                color = color,
+                                                modifier = Modifier.padding(vertical = 2.dp)
+                                        )
+                                }
+                                line.startsWith("**") && line.endsWith("**") -> {
+                                        Text(
+                                                text = line.substring(2, line.length - 2),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                color = color
+                                        )
+                                }
+                                line.startsWith("- ") || line.startsWith("* ") -> {
+                                        Row(
+                                                modifier = Modifier.padding(start = 16.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                                Text(
+                                                        text = "•",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = color
+                                                )
+                                                Text(
+                                                        text = line.substring(2),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = color,
+                                                        modifier = Modifier.weight(1f)
+                                                )
+                                        }
+                                }
+                                line.startsWith("*") &&
+                                        line.endsWith("*") &&
+                                        !line.startsWith("**") -> {
+                                        Text(
+                                                text = line.substring(1, line.length - 1),
+                                                style =
+                                                        MaterialTheme.typography.bodyMedium.copy(
+                                                                fontStyle =
+                                                                        androidx.compose.ui.text
+                                                                                .font.FontStyle
+                                                                                .Italic
+                                                        ),
+                                                color = color.copy(alpha = 0.8f)
+                                        )
+                                }
+                                line.isNotEmpty() -> {
+                                        // Handle bold text within regular paragraphs
+                                        if (line.contains("**")) {
+                                                FormattedText(text = line, color = color)
+                                        } else {
+                                                Text(
+                                                        text = line,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = color
+                                                )
+                                        }
+                                }
+                        }
+                        i++
+                }
+        }
+}
+
+@Composable
+private fun FormattedText(text: String, color: Color) {
+        val parts = text.split("**")
+        val formattedText = buildAnnotatedString {
+                parts.forEachIndexed { index, part ->
+                        if (index % 2 == 0) {
+                                // Regular text
+                                append(part)
+                        } else {
+                                // Bold text
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append(part)
+                                }
+                        }
+                }
+        }
+
+        Text(text = formattedText, style = MaterialTheme.typography.bodyMedium, color = color)
 }
 
 // Helper function to generate styled HTML from markdown
@@ -182,16 +256,23 @@ internal fun generateStyledHtmlFromMarkdown(
         <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style type="text/css">
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    overflow: hidden;
+                    height: auto;
+                    width: 100%;
+                }
                 body {
                     font-family: sans-serif;
                     font-size: 16px;
                     line-height: 1.6;
                     color: ${textColorHex};
-                    margin: 8px 0;
-                    padding: 0;
                     background-color: transparent;
                     -webkit-user-select: text;
                     user-select: text;
+                    overflow: hidden;
+                    height: auto;
                 }
                 h1 {
                     font-size: 20px;
@@ -238,10 +319,11 @@ internal fun generateStyledHtmlFromMarkdown(
                     color: ${textColorHex};
                     text-decoration: underline;
                 }
-                /* Ensure all text is selectable */
+                /* Ensure all text is selectable and no scrolling */
                 * {
                     -webkit-user-select: text;
                     user-select: text;
+                    overflow: visible;
                 }
             </style>
         </head>
