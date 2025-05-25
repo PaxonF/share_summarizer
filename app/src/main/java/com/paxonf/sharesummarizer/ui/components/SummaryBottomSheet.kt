@@ -1,5 +1,15 @@
 package com.paxonf.sharesummarizer.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -20,7 +31,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun SummaryBottomSheet(
         uiState: SummaryUiState,
@@ -29,86 +40,200 @@ fun SummaryBottomSheet(
         containerColor: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
         val scrollState = rememberScrollState()
-
-        // Get current theme colors for WebView
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
         val textColor = MaterialTheme.colorScheme.onSurface
+
+        val configuration = LocalConfiguration.current
+        val screenHeightDp = configuration.screenHeightDp.dp
+
+        val loadingStateHeight = 200.dp // Fixed height for loading state content
 
         ModalBottomSheet(
                 onDismissRequest = onDismiss,
                 modifier = Modifier.fillMaxWidth(),
                 scrimColor = Color.Transparent,
-                containerColor = containerColor
+                containerColor = containerColor,
+                sheetState = sheetState
         ) {
                 Column(
                         modifier =
                                 Modifier.fillMaxWidth()
-                                        .heightIn(
-                                                max = 700.dp
-                                        ) // Maximum height but allows natural sizing
-                                        .navigationBarsPadding() // Handle navigation bar properly
-                                        .padding(
-                                                start = 16.dp,
-                                                end = 16.dp,
-                                                bottom = 16.dp,
-                                                top = 8.dp
-                                        )
-                                        .verticalScroll(scrollState),
+                                        .fillMaxHeight(0.9f)
+                                        .navigationBarsPadding()
+                                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                                        .animateContentSize() // Animate height changes of this
+                                        // Column
+                                        .verticalScroll(
+                                                scrollState
+                                        ), // Allows content within to scroll if sheet is not fully
+                        // expanded by drag
                         horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                        when {
-                                uiState.isLoading -> {
-                                        CircularProgressIndicator(
-                                                modifier = Modifier.padding(32.dp)
-                                        )
-                                        Text(
-                                                text = "Generating summary...",
-                                                style = MaterialTheme.typography.bodyMedium
-                                        )
-                                }
-                                uiState.error != null -> {
-                                        // Simple text icon instead of using material icons
-                                        Text(
-                                                text = "⚠️", // Unicode warning symbol
-                                                style = MaterialTheme.typography.headlineLarge,
-                                                color = MaterialTheme.colorScheme.error,
-                                                modifier = Modifier.padding(bottom = 8.dp)
-                                        )
-                                        Text(
-                                                text = uiState.error,
-                                                color = MaterialTheme.colorScheme.error,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                textAlign = TextAlign.Center,
-                                                modifier =
-                                                        Modifier.padding(
-                                                                horizontal = 16.dp,
-                                                                vertical = 8.dp
+                        AnimatedContent(
+                                targetState = uiState,
+                                transitionSpec = {
+                                        if (initialState.isLoading &&
+                                                        !targetState.isLoading &&
+                                                        targetState.summary.isNotEmpty()
+                                        ) {
+                                                (slideInVertically { fullHeight -> fullHeight } +
+                                                                fadeIn())
+                                                        .togetherWith(
+                                                                slideOutVertically { fullHeight ->
+                                                                        -fullHeight
+                                                                } + fadeOut()
                                                         )
-                                        )
-                                        Button(
-                                                onClick = { onRetry(uiState.originalText) },
-                                                modifier = Modifier.padding(top = 16.dp)
-                                        ) { Text("Retry") }
-                                }
-                                uiState.summary.isNotEmpty() -> {
-                                        val summary = uiState.summary.trim()
-
-                                        // Parse and display markdown content using native Compose
-                                        MarkdownText(
-                                                markdown = summary,
-                                                modifier =
-                                                        Modifier.fillMaxWidth()
-                                                                .padding(horizontal = 8.dp),
-                                                color = textColor
-                                        )
-
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                }
-                                else -> {
-                                        Text(
-                                                text = "No summary available",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                textAlign = TextAlign.Center
-                                        )
+                                                        .using(SizeTransform(clip = false))
+                                        } else if ((initialState.error != null ||
+                                                        initialState.summary.isNotEmpty()) &&
+                                                        targetState.isLoading
+                                        ) {
+                                                (slideInVertically { fullHeight -> -fullHeight } +
+                                                                fadeIn())
+                                                        .togetherWith(
+                                                                slideOutVertically { fullHeight ->
+                                                                        fullHeight
+                                                                } + fadeOut()
+                                                        )
+                                                        .using(SizeTransform(clip = false))
+                                        } else {
+                                                fadeIn(animationSpec = tween(220, delayMillis = 90))
+                                                        .togetherWith(
+                                                                fadeOut(animationSpec = tween(90))
+                                                        )
+                                                        .using(SizeTransform(clip = false))
+                                        }
+                                },
+                                label = "SummaryContentAnimation"
+                        ) { currentUiState ->
+                                when {
+                                        currentUiState.isLoading -> {
+                                                Box(
+                                                        modifier =
+                                                                Modifier.fillMaxWidth()
+                                                                        .height(
+                                                                                loadingStateHeight
+                                                                        ), // Fixed height for
+                                                        // loading content
+                                                        contentAlignment = Alignment.Center
+                                                ) {
+                                                        Column(
+                                                                horizontalAlignment =
+                                                                        Alignment.CenterHorizontally
+                                                        ) {
+                                                                CircularProgressIndicator(
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        bottom =
+                                                                                                16.dp
+                                                                                )
+                                                                )
+                                                                Text(
+                                                                        text =
+                                                                                "Generating summary...",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .bodyMedium
+                                                                )
+                                                        }
+                                                }
+                                        }
+                                        currentUiState.error != null -> {
+                                                Box(
+                                                        modifier =
+                                                                Modifier.fillMaxWidth()
+                                                                        .padding(
+                                                                                vertical = 16.dp
+                                                                        ), // Allow natural height
+                                                        // with padding
+                                                        contentAlignment = Alignment.Center
+                                                ) {
+                                                        Column(
+                                                                horizontalAlignment =
+                                                                        Alignment.CenterHorizontally
+                                                        ) {
+                                                                Text(
+                                                                        text = "⚠️",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .headlineLarge,
+                                                                        color =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .error,
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        bottom =
+                                                                                                8.dp
+                                                                                )
+                                                                )
+                                                                Text(
+                                                                        text = currentUiState.error,
+                                                                        color =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .error,
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .bodyMedium,
+                                                                        textAlign =
+                                                                                TextAlign.Center,
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        horizontal =
+                                                                                                16.dp,
+                                                                                        vertical =
+                                                                                                8.dp
+                                                                                )
+                                                                )
+                                                                Button(
+                                                                        onClick = {
+                                                                                onRetry(
+                                                                                        currentUiState
+                                                                                                .originalText
+                                                                                )
+                                                                        },
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        top = 16.dp
+                                                                                )
+                                                                ) { Text("Retry") }
+                                                        }
+                                                }
+                                        }
+                                        currentUiState.summary.isNotEmpty() -> {
+                                                val summary = currentUiState.summary.trim()
+                                                // MarkdownText will determine its own size.
+                                                // The parent Column's scroll will handle it if too
+                                                // tall for dragged sheet height.
+                                                MarkdownText(
+                                                        markdown = summary,
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        color = textColor
+                                                )
+                                        }
+                                        else -> { // "No summary available"
+                                                Box(
+                                                        modifier =
+                                                                Modifier.fillMaxWidth()
+                                                                        .height(
+                                                                                loadingStateHeight /
+                                                                                        2
+                                                                        ), // A smaller fixed height
+                                                        contentAlignment = Alignment.Center
+                                                ) {
+                                                        Text(
+                                                                text = "No summary available",
+                                                                style =
+                                                                        MaterialTheme.typography
+                                                                                .bodyMedium,
+                                                                textAlign = TextAlign.Center
+                                                        )
+                                                }
+                                        }
                                 }
                         }
                 }
