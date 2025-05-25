@@ -1,5 +1,7 @@
 package com.paxonf.sharesummarizer.ui.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -470,6 +473,47 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 )
                                                                         }
 
+                                                                        Spacer(
+                                                                                Modifier.width(8.dp)
+                                                                        ) // Spacer between text and
+                                                                        // icons
+                                                                        val context =
+                                                                                LocalContext
+                                                                                        .current // Get context for intent
+                                                                        IconButton(
+                                                                                onClick = {
+                                                                                        val intent =
+                                                                                                Intent(
+                                                                                                        Intent.ACTION_VIEW,
+                                                                                                        Uri.parse(
+                                                                                                                "https://aistudio.google.com/app/apikey"
+                                                                                                        )
+                                                                                                )
+                                                                                        context.startActivity(
+                                                                                                intent
+                                                                                        )
+                                                                                },
+                                                                                modifier =
+                                                                                        Modifier.size(
+                                                                                                24.dp
+                                                                                        ) // Standardize touch target size
+                                                                        ) {
+                                                                                Icon(
+                                                                                        imageVector =
+                                                                                                Icons.Outlined
+                                                                                                        .HelpOutline,
+                                                                                        contentDescription =
+                                                                                                "Get API Key Help",
+                                                                                        tint =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant, // Softer tint
+                                                                                        modifier =
+                                                                                                Modifier.size(
+                                                                                                        20.dp
+                                                                                                )
+                                                                                )
+                                                                        }
                                                                         IconButton(
                                                                                 onClick = {
                                                                                         showApiKeyDialog =
