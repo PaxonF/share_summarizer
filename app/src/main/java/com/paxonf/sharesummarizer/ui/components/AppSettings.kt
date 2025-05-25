@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +35,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.paxonf.sharesummarizer.data.AppPreferences
 import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
 import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
+import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +66,9 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
 
         // State for API key visibility
         var isApiKeyVisible by remember { mutableStateOf(false) }
+
+        // State for preview bottom sheet
+        var showPreviewBottomSheet by remember { mutableStateOf(false) }
 
         // Track the initial values with mutable state to allow updates after saving
         var initialApiKey by remember { mutableStateOf(settingsViewModel.apiKey) }
@@ -120,7 +125,95 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
-        Scaffold(topBar = { TopAppBar(title = { Text("App Settings") }) }) { paddingValues ->
+        // Preview bottom sheet with example content
+        if (showPreviewBottomSheet) {
+                val containerColor =
+                        when (selectedColorOption) {
+                                "primary" -> MaterialTheme.colorScheme.primaryContainer
+                                "secondary" -> MaterialTheme.colorScheme.secondaryContainer
+                                "tertiary" -> MaterialTheme.colorScheme.tertiaryContainer
+                                "custom" -> customColor
+                                else -> MaterialTheme.colorScheme.primaryContainer
+                        }
+
+                SummaryBottomSheet(
+                        uiState =
+                                SummaryUiState(
+                                        summary = getExampleSummary(),
+                                        originalText = getExampleOriginalText(),
+                                        isLoading = false
+                                ),
+                        onDismiss = { showPreviewBottomSheet = false },
+                        onRetry = { /* No-op for preview */},
+                        containerColor = containerColor
+                )
+        }
+
+        Scaffold(
+                topBar = { TopAppBar(title = { Text("App Settings") }) },
+                floatingActionButton = {
+                        // Animate FAB visibility - hide when there are unsaved changes
+                        AnimatedVisibility(
+                                visible = !hasChanges,
+                                enter =
+                                        slideInVertically(
+                                                initialOffsetY = { it },
+                                                animationSpec = tween(300)
+                                        ) + fadeIn(animationSpec = tween(300)),
+                                exit =
+                                        slideOutVertically(
+                                                targetOffsetY = { it },
+                                                animationSpec = tween(300)
+                                        ) + fadeOut(animationSpec = tween(300))
+                        ) {
+                                ExtendedFloatingActionButton(
+                                        onClick = { showPreviewBottomSheet = true },
+                                        icon = {
+                                                Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = "Preview"
+                                                )
+                                        },
+                                        text = { Text("Preview") },
+                                        containerColor =
+                                                when (selectedColorOption) {
+                                                        "primary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .primaryContainer
+                                                        "secondary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .secondaryContainer
+                                                        "tertiary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .tertiaryContainer
+                                                        "custom" -> customColor
+                                                        else ->
+                                                                MaterialTheme.colorScheme
+                                                                        .primaryContainer
+                                                },
+                                        contentColor =
+                                                when (selectedColorOption) {
+                                                        "primary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .onPrimaryContainer
+                                                        "secondary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .onSecondaryContainer
+                                                        "tertiary" ->
+                                                                MaterialTheme.colorScheme
+                                                                        .onTertiaryContainer
+                                                        "custom" ->
+                                                                if (customColor.luminance() > 0.5f)
+                                                                        Color.Black
+                                                                else Color.White
+                                                        else ->
+                                                                MaterialTheme.colorScheme
+                                                                        .onPrimaryContainer
+                                                }
+                                )
+                        }
+                }
+        ) { paddingValues ->
                 Box(modifier = Modifier.fillMaxSize()) {
                         LazyColumn(
                                 modifier =
@@ -617,226 +710,6 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         MaterialTheme.colorScheme
                                                                                 .onSurfaceVariant
                                                         )
-
-                                                        // Preview box showing how the bottom sheet
-                                                        // will look
-                                                        Card(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                elevation =
-                                                                        CardDefaults.cardElevation(
-                                                                                defaultElevation =
-                                                                                        4.dp
-                                                                        ),
-                                                                colors =
-                                                                        CardDefaults.cardColors(
-                                                                                containerColor =
-                                                                                        when (selectedColorOption
-                                                                                        ) {
-                                                                                                "primary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .primaryContainer
-                                                                                                "secondary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .secondaryContainer
-                                                                                                "tertiary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .tertiaryContainer
-                                                                                                "custom" ->
-                                                                                                        customColor
-                                                                                                else ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .surface
-                                                                                        }
-                                                                        )
-                                                        ) {
-                                                                Column(
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        16.dp
-                                                                                ),
-                                                                        verticalArrangement =
-                                                                                Arrangement
-                                                                                        .spacedBy(
-                                                                                                8.dp
-                                                                                        )
-                                                                ) {
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth(),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween,
-                                                                                verticalAlignment =
-                                                                                        Alignment
-                                                                                                .CenterVertically
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Preview",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .labelLarge,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium,
-                                                                                        color =
-                                                                                                when (selectedColorOption
-                                                                                                ) {
-                                                                                                        "primary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onPrimaryContainer
-                                                                                                        "secondary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSecondaryContainer
-                                                                                                        "tertiary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onTertiaryContainer
-                                                                                                        "custom" ->
-                                                                                                                if (customColor
-                                                                                                                                .luminance() >
-                                                                                                                                0.5f
-                                                                                                                )
-                                                                                                                        Color.Black
-                                                                                                                else
-                                                                                                                        Color.White
-                                                                                                        else ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSurface
-                                                                                                }
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Summary Bottom Sheet",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodySmall,
-                                                                                        color =
-                                                                                                when (selectedColorOption
-                                                                                                ) {
-                                                                                                        "primary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onPrimaryContainer
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.7f
-                                                                                                                        )
-                                                                                                        "secondary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSecondaryContainer
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.7f
-                                                                                                                        )
-                                                                                                        "tertiary" ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onTertiaryContainer
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.7f
-                                                                                                                        )
-                                                                                                        "custom" ->
-                                                                                                                if (customColor
-                                                                                                                                .luminance() >
-                                                                                                                                0.5f
-                                                                                                                )
-                                                                                                                        Color.Black
-                                                                                                                                .copy(
-                                                                                                                                        alpha =
-                                                                                                                                                0.7f
-                                                                                                                                )
-                                                                                                                else
-                                                                                                                        Color.White
-                                                                                                                                .copy(
-                                                                                                                                        alpha =
-                                                                                                                                                0.7f
-                                                                                                                                )
-                                                                                                        else ->
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSurface
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.7f
-                                                                                                                        )
-                                                                                                }
-                                                                                )
-                                                                        }
-
-                                                                        Text(
-                                                                                text =
-                                                                                        "This is how your summary will appear when you share content. The background color will match your selection below.",
-                                                                                style =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodySmall,
-                                                                                color =
-                                                                                        when (selectedColorOption
-                                                                                        ) {
-                                                                                                "primary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onPrimaryContainer
-                                                                                                                .copy(
-                                                                                                                        alpha =
-                                                                                                                                0.8f
-                                                                                                                )
-                                                                                                "secondary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onSecondaryContainer
-                                                                                                                .copy(
-                                                                                                                        alpha =
-                                                                                                                                0.8f
-                                                                                                                )
-                                                                                                "tertiary" ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onTertiaryContainer
-                                                                                                                .copy(
-                                                                                                                        alpha =
-                                                                                                                                0.8f
-                                                                                                                )
-                                                                                                "custom" ->
-                                                                                                        if (customColor
-                                                                                                                        .luminance() >
-                                                                                                                        0.5f
-                                                                                                        )
-                                                                                                                Color.Black
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.8f
-                                                                                                                        )
-                                                                                                        else
-                                                                                                                Color.White
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.8f
-                                                                                                                        )
-                                                                                                else ->
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onSurface
-                                                                                                                .copy(
-                                                                                                                        alpha =
-                                                                                                                                0.8f
-                                                                                                                )
-                                                                                        }
-                                                                        )
-                                                                }
-                                                        }
 
                                                         // Color options using the correct Material
                                                         // You options
@@ -1352,4 +1225,48 @@ fun AppSettingsScreenPreview() {
                 val dummyViewModel = SettingsViewModel(dummyPrefs)
                 AppSettingsScreen(settingsViewModel = dummyViewModel)
         }
+}
+
+// Helper functions for example content
+private fun getExampleSummary(): String {
+        return """
+# Article Summary: The Future of AI Technology
+
+**Source:** TechNews Daily | **Author:** Dr. Sarah Johnson | **Date:** December 2024
+
+## Key Points
+
+**Artificial Intelligence Revolution**: The article discusses how AI technology is rapidly transforming various industries, from healthcare to transportation.
+
+**Machine Learning Advances**: Recent breakthroughs in machine learning algorithms have enabled more sophisticated pattern recognition and decision-making capabilities.
+
+**Ethical Considerations**: The piece emphasizes the importance of developing AI systems with built-in ethical guidelines and transparency measures.
+
+## Main Takeaways
+
+- AI adoption is accelerating across multiple sectors
+- Investment in AI research has increased by 300% in the past year  
+- Regulatory frameworks are being developed to ensure responsible AI deployment
+- The technology promises to enhance human capabilities rather than replace them
+
+*This summary demonstrates how your chosen color theme will appear when viewing AI-generated content summaries.*
+        """.trimIndent()
+}
+
+private fun getExampleOriginalText(): String {
+        return """
+The Future of AI Technology: A Comprehensive Look at What's Coming Next
+
+By Dr. Sarah Johnson, TechNews Daily, December 2024
+
+Artificial intelligence is no longer a concept confined to science fiction. Today, AI technology is rapidly transforming industries across the globe, from healthcare and finance to transportation and entertainment. As we look toward the future, the potential applications and implications of AI continue to expand at an unprecedented pace.
+
+Recent breakthroughs in machine learning algorithms have enabled more sophisticated pattern recognition and decision-making capabilities. These advances are making it possible for AI systems to process and analyze vast amounts of data with remarkable accuracy and speed. Companies are investing heavily in AI research and development, with funding increasing by over 300% in the past year alone.
+
+However, with great power comes great responsibility. The article emphasizes the critical importance of developing AI systems with built-in ethical guidelines and transparency measures. As AI becomes more integrated into our daily lives, ensuring that these systems operate fairly and transparently is paramount.
+
+The regulatory landscape is also evolving to keep pace with technological advancement. Governments worldwide are working to establish frameworks that promote innovation while protecting citizens' rights and privacy. The goal is not to stifle progress but to ensure that AI development proceeds in a responsible and beneficial manner.
+
+Looking ahead, experts predict that AI will continue to enhance human capabilities rather than replace them entirely. The focus is shifting toward creating collaborative systems where humans and AI work together to solve complex problems and improve quality of life for everyone.
+        """.trimIndent()
 }
