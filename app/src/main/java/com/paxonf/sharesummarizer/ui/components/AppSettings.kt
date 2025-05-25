@@ -7,7 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -103,6 +105,13 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         var showPromptDialog by remember { mutableStateOf(false) }
         var tempPromptInput by remember { mutableStateOf("") }
 
+        // State for custom color picker dialog
+        var showCustomColorDialog by remember { mutableStateOf(false) }
+        var dialogCustomColorSelection by remember { mutableStateOf(customColor) }
+
+        // State for model selection dialog
+        var showModelSelectionDialog by remember { mutableStateOf(false) }
+
         // State for API key visibility
         var isApiKeyVisible by remember { mutableStateOf(false) }
 
@@ -183,9 +192,37 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
+        // Custom Color Picker Dialog
+        if (showCustomColorDialog) {
+                CustomColorPickerDialog(
+                        initialColor = dialogCustomColorSelection,
+                        onColorSelected = { newColor ->
+                                customColor = newColor
+                                selectedColorOption =
+                                        THEME_OPTION_CUSTOM // Select custom theme upon saving a
+                                // color
+                                showCustomColorDialog = false
+                        },
+                        onDismiss = { showCustomColorDialog = false }
+                )
+        }
+
+        // Model Selection Dialog
+        if (showModelSelectionDialog) {
+                ModelSelectionDialog(
+                        initialSelectedModelId = selectedModel,
+                        availableModels = settingsViewModel.availableModels,
+                        onConfirm = { newModelId ->
+                                selectedModel = newModelId
+                                showModelSelectionDialog = false
+                        },
+                        onDismiss = { showModelSelectionDialog = false }
+                )
+        }
+
         // Preview bottom sheet with example content
         if (showPreviewBottomSheet) {
-                val (containerColorForSheet, _) =
+                val (containerColorForSheet, contentColorForSheet) =
                         getThemeColors(
                                 selectedOption = selectedColorOption,
                                 customColor = customColor,
@@ -201,7 +238,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 ),
                         onDismiss = { showPreviewBottomSheet = false },
                         onRetry = { /* No-op for preview */},
-                        containerColor = containerColorForSheet
+                        containerColor = containerColorForSheet,
+                        contentColor = contentColorForSheet
                 )
         }
 
@@ -268,12 +306,34 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 }
                                         },
                                 contentPadding =
-                                        PaddingValues(
-                                                start = 16.dp,
-                                                end = 16.dp,
-                                                top = 16.dp,
-                                                bottom = 16.dp // No extra padding needed
-                                        ),
+                                        {
+                                                val baseHorizontalPadding = 16.dp
+                                                val topPadding = 16.dp
+                                                val fabHeight = 56.dp
+                                                val saveCardEstimatedHeight =
+                                                        130.dp // Content + internal padding
+                                                val cardOwnBottomMargin =
+                                                        16.dp // External padding on the save card
+                                                // itself
+                                                val desiredSpacingAboveBottomElement = 16.dp
+
+                                                val bottomPaddingForFab =
+                                                        fabHeight + desiredSpacingAboveBottomElement
+                                                val bottomPaddingForSaveCard =
+                                                        saveCardEstimatedHeight +
+                                                                cardOwnBottomMargin +
+                                                                desiredSpacingAboveBottomElement
+
+                                                PaddingValues(
+                                                        start = baseHorizontalPadding,
+                                                        end = baseHorizontalPadding,
+                                                        top = topPadding,
+                                                        bottom =
+                                                                if (hasChanges)
+                                                                        bottomPaddingForSaveCard
+                                                                else bottomPaddingForFab
+                                                )
+                                        }(), // Invoke lambda to get PaddingValues
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                                 item {
@@ -486,70 +546,75 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
 
                                 item {
                                         SettingsSection(title = "Model Selection") {
-                                                ExposedDropdownMenuBox(
-                                                        expanded = isModelDropdownExpanded,
-                                                        onExpandedChange = {
-                                                                isModelDropdownExpanded = it
-                                                        },
-                                                        modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                        OutlinedTextField(
-                                                                value =
-                                                                        settingsViewModel
-                                                                                .availableModels[
-                                                                                selectedModel]
-                                                                                ?: selectedModel,
-                                                                onValueChange = {},
-                                                                readOnly = true,
-                                                                label = { Text("AI Model") },
-                                                                trailingIcon = {
-                                                                        ExposedDropdownMenuDefaults
-                                                                                .TrailingIcon(
-                                                                                        expanded =
-                                                                                                isModelDropdownExpanded
-                                                                                )
+                                                val currentModelDisplayName =
+                                                        settingsViewModel.availableModels[
+                                                                selectedModel]
+                                                                ?: selectedModel
+                                                ElevatedCard(
+                                                        modifier =
+                                                                Modifier.fillMaxWidth().clickable {
+                                                                        showModelSelectionDialog =
+                                                                                true
                                                                 },
+                                                        elevation =
+                                                                CardDefaults.elevatedCardElevation(
+                                                                        defaultElevation = 2.dp
+                                                                )
+                                                ) {
+                                                        Row(
                                                                 modifier =
                                                                         Modifier.fillMaxWidth()
-                                                                                .menuAnchor(
-                                                                                        MenuAnchorType
-                                                                                                .PrimaryNotEditable
-                                                                                ),
-                                                                colors =
-                                                                        ExposedDropdownMenuDefaults
-                                                                                .outlinedTextFieldColors()
-                                                        )
-
-                                                        ExposedDropdownMenu(
-                                                                expanded = isModelDropdownExpanded,
-                                                                onDismissRequest = {
-                                                                        isModelDropdownExpanded =
-                                                                                false
-                                                                }
+                                                                                .padding(16.dp),
+                                                                horizontalArrangement =
+                                                                        Arrangement.SpaceBetween,
+                                                                verticalAlignment =
+                                                                        Alignment.CenterVertically
                                                         ) {
-                                                                settingsViewModel.availableModels
-                                                                        .forEach {
-                                                                                (
-                                                                                        modelId,
-                                                                                        displayName)
-                                                                                ->
-                                                                                DropdownMenuItem(
-                                                                                        text = {
-                                                                                                Text(
-                                                                                                        displayName
-                                                                                                )
-                                                                                        },
-                                                                                        onClick = {
-                                                                                                selectedModel =
-                                                                                                        modelId
-                                                                                                isModelDropdownExpanded =
-                                                                                                        false
-                                                                                        },
-                                                                                        contentPadding =
-                                                                                                ExposedDropdownMenuDefaults
-                                                                                                        .ItemContentPadding
-                                                                                )
-                                                                        }
+                                                                Column(
+                                                                        modifier =
+                                                                                Modifier.weight(1f)
+                                                                ) {
+                                                                        Text(
+                                                                                text = "AI Model",
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .titleSmall,
+                                                                                fontWeight =
+                                                                                        FontWeight
+                                                                                                .Medium,
+                                                                                color =
+                                                                                        MaterialTheme
+                                                                                                .colorScheme
+                                                                                                .primary
+                                                                        )
+                                                                        Text(
+                                                                                text =
+                                                                                        currentModelDisplayName,
+                                                                                style =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium,
+                                                                                color =
+                                                                                        MaterialTheme
+                                                                                                .colorScheme
+                                                                                                .onSurfaceVariant
+                                                                        )
+                                                                }
+                                                                Icon(
+                                                                        imageVector =
+                                                                                Icons.Default
+                                                                                        .Edit, // Or
+                                                                        // a
+                                                                        // dropdown arrow if
+                                                                        // preferred
+                                                                        contentDescription =
+                                                                                "Change AI Model",
+                                                                        tint =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .primary
+                                                                )
                                                         }
                                                 }
                                         }
@@ -756,8 +821,18 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                         BottomSheetThemeSelection(
                                                                 currentThemeOption =
                                                                         selectedColorOption,
-                                                                onThemeOptionSelected = {
-                                                                        selectedColorOption = it
+                                                                onThemeOptionSelected = { option ->
+                                                                        if (option ==
+                                                                                        THEME_OPTION_CUSTOM
+                                                                        ) {
+                                                                                dialogCustomColorSelection =
+                                                                                        customColor
+                                                                                showCustomColorDialog =
+                                                                                        true
+                                                                        } else {
+                                                                                selectedColorOption =
+                                                                                        option
+                                                                        }
                                                                 },
                                                                 customColorValue = customColor,
                                                                 materialColorScheme =
@@ -767,9 +842,10 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                         // Custom color picker (only shown when
                                                         // custom is selected)
                                                         AnimatedVisibility(
-                                                                visible =
-                                                                        selectedColorOption ==
-                                                                                THEME_OPTION_CUSTOM,
+                                                                visible = false, // No longer shown
+                                                                // inline
+                                                                // selectedColorOption ==
+                                                                // THEME_OPTION_CUSTOM,
                                                                 enter =
                                                                         expandVertically() +
                                                                                 fadeIn(),
@@ -1481,4 +1557,102 @@ The regulatory landscape is also evolving to keep pace with technological advanc
 
 Looking ahead, experts predict that AI will continue to enhance human capabilities rather than replace them entirely. The focus is shifting toward creating collaborative systems where humans and AI work together to solve complex problems and improve quality of life for everyone.
         """.trimIndent()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CustomColorPickerDialog(
+        initialColor: Color,
+        onColorSelected: (Color) -> Unit,
+        onDismiss: () -> Unit
+) {
+        var pickedColor by remember { mutableStateOf(initialColor) }
+
+        AlertDialog(
+                onDismissRequest = onDismiss,
+                title = { Text("Choose Custom Color") },
+                text = {
+                        Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                                ColorPicker(
+                                        selectedColor = pickedColor,
+                                        onColorSelected = { pickedColor = it },
+                                        modifier =
+                                                Modifier.fillMaxWidth()
+                                                        .height(
+                                                                250.dp
+                                                        ) // Give picker some explicit size
+                                )
+                                // Optional: Display the hex code or RGB values of pickedColor here
+                        }
+                },
+                confirmButton = {
+                        Button(onClick = { onColorSelected(pickedColor) }) { Text("Save") }
+                },
+                dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+                modifier = Modifier.fillMaxWidth(0.9f) // Adjust dialog width as needed
+        )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModelSelectionDialog(
+        initialSelectedModelId: String,
+        availableModels: Map<String, String>,
+        onConfirm: (String) -> Unit,
+        onDismiss: () -> Unit
+) {
+        var tempSelectedModelId by remember { mutableStateOf(initialSelectedModelId) }
+
+        AlertDialog(
+                onDismissRequest = onDismiss,
+                icon = {
+                        Icon(Icons.Filled.Edit, contentDescription = "Select Model")
+                }, // Optional icon
+                title = { Text("Select AI Model") },
+                text = {
+                        LazyColumn {
+                                items(availableModels.toList()) { (modelId, displayName) ->
+                                        Row(
+                                                modifier =
+                                                        Modifier.fillMaxWidth()
+                                                                .selectable(
+                                                                        selected =
+                                                                                (modelId ==
+                                                                                        tempSelectedModelId),
+                                                                        onClick = {
+                                                                                tempSelectedModelId =
+                                                                                        modelId
+                                                                        },
+                                                                        role =
+                                                                                androidx.compose.ui
+                                                                                        .semantics
+                                                                                        .Role
+                                                                                        .RadioButton
+                                                                )
+                                                                .padding(vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                                RadioButton(
+                                                        selected = (modelId == tempSelectedModelId),
+                                                        onClick = null // Click is handled by Row
+                                                )
+                                                Spacer(Modifier.width(16.dp))
+                                                Text(
+                                                        text = displayName,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                )
+                                        }
+                                }
+                        }
+                },
+                confirmButton = {
+                        Button(onClick = { onConfirm(tempSelectedModelId) }) { Text("Confirm") }
+                },
+                dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        )
 }

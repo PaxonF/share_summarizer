@@ -37,11 +37,11 @@ fun SummaryBottomSheet(
         uiState: SummaryUiState,
         onDismiss: () -> Unit,
         onRetry: (String) -> Unit,
-        containerColor: Color = MaterialTheme.colorScheme.primaryContainer
+        containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
         val scrollState = rememberScrollState()
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-        val textColor = MaterialTheme.colorScheme.onSurface
 
         val configuration = LocalConfiguration.current
         val screenHeightDp = configuration.screenHeightDp.dp
@@ -134,7 +134,8 @@ fun SummaryBottomSheet(
                                                                         style =
                                                                                 MaterialTheme
                                                                                         .typography
-                                                                                        .bodyMedium
+                                                                                        .bodyMedium,
+                                                                        color = contentColor
                                                                 )
                                                         }
                                                 }
@@ -212,7 +213,7 @@ fun SummaryBottomSheet(
                                                 MarkdownText(
                                                         markdown = summary,
                                                         modifier = Modifier.fillMaxWidth(),
-                                                        color = textColor
+                                                        color = contentColor
                                                 )
                                         }
                                         else -> { // "No summary available"
@@ -230,7 +231,8 @@ fun SummaryBottomSheet(
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .bodyMedium,
-                                                                textAlign = TextAlign.Center
+                                                                textAlign = TextAlign.Center,
+                                                                color = contentColor
                                                         )
                                                 }
                                         }
