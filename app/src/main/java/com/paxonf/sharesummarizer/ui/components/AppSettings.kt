@@ -1140,7 +1140,12 @@ private fun PromptEditDialog(
                         )
                 },
                 text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(
+                                modifier =
+                                        Modifier.fillMaxHeight(), // Fill height to allow weights to
+                                // work
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                                 Text(
                                         text =
                                                 "Customize how the AI summarizes your content. Use a detailed prompt for better results, but keep it concise for higher speed.",
@@ -1155,7 +1160,12 @@ private fun PromptEditDialog(
                                         placeholder = {
                                                 Text("Enter your summarization prompt...")
                                         },
-                                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                                        modifier =
+                                                Modifier.fillMaxWidth()
+                                                        .weight(
+                                                                0.6f
+                                                        ), // Make editable prompt take ~60% of
+                                        // available height
                                         minLines = 8,
                                         maxLines = 12,
                                         trailingIcon = {
@@ -1175,7 +1185,12 @@ private fun PromptEditDialog(
 
                                 // Default prompt reference
                                 ElevatedCard(
-                                        modifier = Modifier.fillMaxWidth(),
+                                        modifier =
+                                                Modifier.fillMaxWidth()
+                                                        .weight(
+                                                                0.4f
+                                                        ), // Make default prompt take ~40% of
+                                        // available height
                                         elevation =
                                                 CardDefaults.elevatedCardElevation(
                                                         defaultElevation = 1.dp
@@ -1233,7 +1248,7 @@ private fun PromptEditDialog(
                         Button(
                                 onClick = { onSave(editedPrompt) },
                                 enabled = editedPrompt.isNotBlank()
-                        ) { Text("Save") }
+                        ) { Text("Set") }
                 },
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
                 properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -1558,7 +1573,7 @@ private fun CustomColorPickerDialog(
                         }
                 },
                 confirmButton = {
-                        Button(onClick = { onColorSelected(pickedColor) }) { Text("Save") }
+                        Button(onClick = { onColorSelected(pickedColor) }) { Text("Set") }
                 },
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
                 properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -1661,7 +1676,7 @@ private fun ApiKeyEditDialog(
                                 }
                         )
                 },
-                confirmButton = { Button(onClick = { onSave(tempApiKey) }) { Text("Save") } },
+                confirmButton = { Button(onClick = { onSave(tempApiKey) }) { Text("Set") } },
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
         )
 }
