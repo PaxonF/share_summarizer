@@ -2,6 +2,7 @@ package com.paxonf.sharesummarizer.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.paxonf.sharesummarizer.data.AppPreferences
+import com.paxonf.sharesummarizer.utils.Constants
 
 class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel() {
 
@@ -23,6 +24,27 @@ class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel(
                     "gemini-2.5-pro-preview-05-06" to "Gemini 2.5 Pro (Preview)"
             )
 
+    val summaryPrompt: String
+        get() = appPreferences.summaryPrompt.ifEmpty { "" }
+
+    val bottomSheetColorOption: String
+        get() = appPreferences.bottomSheetColorOption
+
+    val customBottomSheetColor: Int
+        get() = appPreferences.customBottomSheetColor
+
+    val availableColorOptions =
+            mapOf(
+                    "primary" to "Material You: Primary Theme Color",
+                    "secondary" to "Material You: Secondary Theme Color",
+                    "tertiary" to "Material You: Tertiary Theme Color",
+                    "custom" to "Custom Color"
+            )
+
+    fun getDefaultPrompt(): String {
+        return Constants.DEFAULT_SUMMARY_PROMPT
+    }
+
     fun saveApiKey(apiKey: String) {
         appPreferences.apiKey = apiKey
     }
@@ -33,5 +55,17 @@ class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel(
 
     fun saveSelectedModel(modelId: String) {
         appPreferences.selectedModel = modelId
+    }
+
+    fun saveSummaryPrompt(prompt: String) {
+        appPreferences.summaryPrompt = prompt
+    }
+
+    fun saveBottomSheetColorOption(option: String) {
+        appPreferences.bottomSheetColorOption = option
+    }
+
+    fun saveCustomBottomSheetColor(color: Int) {
+        appPreferences.customBottomSheetColor = color
     }
 }

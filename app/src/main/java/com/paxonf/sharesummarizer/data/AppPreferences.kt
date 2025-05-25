@@ -21,11 +21,25 @@ class AppPreferences(private val context: Context) {
         get() = preferences.getString(KEY_SELECTED_MODEL, "gemini-2.0-flash") ?: "gemini-2.0-flash"
         set(value) = preferences.edit { putString(KEY_SELECTED_MODEL, value) }
 
+    var summaryPrompt: String
+        get() = preferences.getString(KEY_SUMMARY_PROMPT, "") ?: ""
+        set(value) = preferences.edit { putString(KEY_SUMMARY_PROMPT, value) }
+
+    var bottomSheetColorOption: String
+        get() = preferences.getString(KEY_BOTTOM_SHEET_COLOR, "primary") ?: "primary"
+        set(value) = preferences.edit { putString(KEY_BOTTOM_SHEET_COLOR, value) }
+
+    var customBottomSheetColor: Int
+        get() = preferences.getInt(KEY_CUSTOM_BOTTOM_SHEET_COLOR, 0xFF6750A4.toInt())
+        set(value) = preferences.edit { putInt(KEY_CUSTOM_BOTTOM_SHEET_COLOR, value) }
+
     companion object {
         private const val PREFERENCES_NAME = "share_summarizer_prefs"
         private const val KEY_API_KEY = "api_key"
         private const val KEY_SUMMARY_LENGTH = "summary_length"
-        private const val KEY_TEXT_SIZE = "text_size"
         private const val KEY_SELECTED_MODEL = "selected_model"
+        private const val KEY_SUMMARY_PROMPT = "summary_prompt"
+        private const val KEY_BOTTOM_SHEET_COLOR = "bottom_sheet_color"
+        private const val KEY_CUSTOM_BOTTOM_SHEET_COLOR = "custom_bottom_sheet_color"
     }
 }

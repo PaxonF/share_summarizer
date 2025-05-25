@@ -20,18 +20,22 @@ import org.intellij.markdown.parser.MarkdownParser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: (String) -> Unit) {
+fun SummaryBottomSheet(
+        uiState: SummaryUiState,
+        onDismiss: () -> Unit,
+        onRetry: (String) -> Unit,
+        containerColor: Color = MaterialTheme.colorScheme.primaryContainer
+) {
         val scrollState = rememberScrollState()
 
         // Get current theme colors for WebView
         val textColor = MaterialTheme.colorScheme.onSurface
-        val backgroundColor = MaterialTheme.colorScheme.surface
 
         ModalBottomSheet(
                 onDismissRequest = onDismiss,
                 modifier = Modifier.fillMaxHeight(0.9f),
                 scrimColor = Color.Transparent,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                containerColor = containerColor,
                 windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
                 Column(
@@ -90,8 +94,7 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
                                         val styledHtml =
                                                 generateStyledHtmlFromMarkdown(
                                                         summary,
-                                                        textColor = textColor,
-                                                        backgroundColor = backgroundColor
+                                                        textColor = textColor
                                                 )
 
                                         // Use WebView instead of TextView which handles HTML
@@ -161,10 +164,9 @@ fun SummaryBottomSheet(uiState: SummaryUiState, onDismiss: () -> Unit, onRetry: 
 }
 
 // Helper function to generate styled HTML from markdown
-private fun generateStyledHtmlFromMarkdown(
+internal fun generateStyledHtmlFromMarkdown(
         markdownText: String,
         textColor: Color,
-        backgroundColor: Color
 ): String {
         // Convert Color to hex string for CSS
         val textColorHex = String.format("#%06X", (0xFFFFFF and textColor.toArgb()))

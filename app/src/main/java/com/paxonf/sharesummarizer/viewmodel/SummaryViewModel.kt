@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paxonf.sharesummarizer.data.AppPreferences
+import com.paxonf.sharesummarizer.utils.Constants
 import com.paxonf.sharesummarizer.utils.TextSummarizer
 import kotlinx.coroutines.launch
 
@@ -30,8 +31,17 @@ class SummaryViewModel(
                 val summaryLength = appPreferences.summaryLength
                 val apiKey = appPreferences.apiKey
                 val selectedModel = appPreferences.selectedModel
+                val summaryPrompt =
+                        appPreferences.summaryPrompt.ifEmpty { Constants.DEFAULT_SUMMARY_PROMPT }
 
-                val summary = textSummarizer.summarize(text, summaryLength, apiKey, selectedModel)
+                val summary =
+                        textSummarizer.summarize(
+                                text,
+                                summaryLength,
+                                apiKey,
+                                selectedModel,
+                                summaryPrompt
+                        )
                 uiState = SummaryUiState(summary = summary, originalText = text, isLoading = false)
             } catch (e: Exception) {
                 uiState =

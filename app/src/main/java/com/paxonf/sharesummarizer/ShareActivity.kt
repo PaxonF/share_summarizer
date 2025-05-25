@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -60,6 +62,17 @@ class ShareActivity : ComponentActivity() {
             ShareSummarizerTheme(dynamicColor = true) {
                 var showBottomSheet by remember { mutableStateOf(true) }
 
+                // Get the selected color based on user preferences
+                val containerColor =
+                        when (appPreferences.bottomSheetColorOption) {
+                            "primary" -> MaterialTheme.colorScheme.primaryContainer
+                            "secondary" -> MaterialTheme.colorScheme.secondaryContainer
+                            "tertiary" -> MaterialTheme.colorScheme.tertiaryContainer
+                            "custom" ->
+                                    Color(appPreferences.customBottomSheetColor).copy(alpha = 0.9f)
+                            else -> MaterialTheme.colorScheme.primaryContainer
+                        }
+
                 if (showBottomSheet) {
                     LaunchedEffect(
                             sharedText
@@ -75,7 +88,8 @@ class ShareActivity : ComponentActivity() {
                             },
                             onRetry = { originalTextForRetry ->
                                 summaryViewModel.generateSummary(originalTextForRetry)
-                            }
+                            },
+                            containerColor = containerColor
                     )
                 } else {
                     // The activity will finish when showBottomSheet is false

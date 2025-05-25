@@ -28,7 +28,8 @@ class TextSummarizer(private val context: Context) {
             text: String,
             summaryLength: Int,
             apiKey: String,
-            modelId: String = "gemini-2.0-flash"
+            modelId: String = "gemini-2.0-flash",
+            summaryPrompt: String
     ): String {
         return withContext(Dispatchers.IO) {
             if (apiKey.isBlank()) {
@@ -54,7 +55,7 @@ class TextSummarizer(private val context: Context) {
                 val configInfo =
                         "The user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
 
-                makeAPIRequest(contentToSummarize, apiKey, modelId, configInfo)
+                makeAPIRequest(contentToSummarize, apiKey, modelId, configInfo, summaryPrompt)
             } catch (e: Exception) {
                 e.printStackTrace() // Log the exception for debugging
                 return@withContext fallbackSummarize(text, summaryLength)
@@ -138,21 +139,18 @@ class TextSummarizer(private val context: Context) {
             promptText: String,
             apiKey: String,
             modelId: String = "gemini-2.0-flash",
-            configInfo: String
+            configInfo: String,
+            summaryPrompt: String
     ): String {
         val urlString =
                 "https://generativelanguage.googleapis.com/v1beta/models/$modelId:generateContent?key=$apiKey"
-
-        // Extract the system instruction part (everything before the content to summarize)
-        val systemInstructionText =
-                "Summarize the following text. In your response, include a brief title of the article, or whatever you're summarizing, including the author, date, and source, if it is available. You should use raw markdown formatting to make the summary more readable. Use headers, italics, bold, or other markdown formatting to make the summarization clear, and only if appropriate. Do not include any other text in your response. Use bullet points or lists sparingly. Main headers and key ideas should not be bullet points or lists."
 
         // Construct the JSON request body with system_instruction separated from content
         val requestBodyJson = JSONObject()
 
         // Add system instruction
         val systemInstruction = JSONObject()
-        val systemPart = JSONObject().put("text", systemInstructionText + " " + configInfo)
+        val systemPart = JSONObject().put("text", summaryPrompt + " " + configInfo)
         systemInstruction.put("parts", org.json.JSONArray().put(systemPart))
         requestBodyJson.put("system_instruction", systemInstruction)
 
