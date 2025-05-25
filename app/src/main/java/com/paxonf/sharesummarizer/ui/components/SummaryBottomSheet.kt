@@ -35,8 +35,7 @@ fun SummaryBottomSheet(
                 onDismissRequest = onDismiss,
                 modifier = Modifier.fillMaxHeight(0.9f),
                 scrimColor = Color.Transparent,
-                containerColor = containerColor,
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                containerColor = containerColor
         ) {
                 Column(
                         modifier =

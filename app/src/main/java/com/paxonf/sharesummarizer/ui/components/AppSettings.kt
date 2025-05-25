@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -431,7 +432,9 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                 style =
                                                                         MaterialTheme.typography
                                                                                 .bodyMedium,
-                                                                fontWeight = FontWeight.Medium
+                                                                color =
+                                                                        MaterialTheme.colorScheme
+                                                                                .onSurface
                                                         )
 
                                                         Slider(
@@ -443,7 +446,6 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 it.toInt()
                                                                 },
                                                                 valueRange = 1f..5f,
-                                                                steps = 3,
                                                                 modifier = Modifier.fillMaxWidth()
                                                         )
 
@@ -453,22 +455,22 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         Arrangement.SpaceBetween
                                                         ) {
                                                                 Text(
-                                                                        "Short",
+                                                                        text = "Brief",
                                                                         style =
                                                                                 MaterialTheme
                                                                                         .typography
-                                                                                        .labelMedium,
+                                                                                        .labelSmall,
                                                                         color =
                                                                                 MaterialTheme
                                                                                         .colorScheme
                                                                                         .onSurfaceVariant
                                                                 )
                                                                 Text(
-                                                                        "Long",
+                                                                        text = "Detailed",
                                                                         style =
                                                                                 MaterialTheme
                                                                                         .typography
-                                                                                        .labelMedium,
+                                                                                        .labelSmall,
                                                                         color =
                                                                                 MaterialTheme
                                                                                         .colorScheme
@@ -1051,20 +1053,23 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                         contentColor =
                                                                                                 MaterialTheme
                                                                                                         .colorScheme
-                                                                                                        .onPrimaryContainer
-                                                                                ),
-                                                                border =
-                                                                        BorderStroke(
-                                                                                1.dp,
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onPrimaryContainer
-                                                                                        .copy(
-                                                                                                alpha =
-                                                                                                        0.5f
-                                                                                        )
-                                                                        )
-                                                        ) { Text("Reset") }
+                                                                                                        .onSurface
+                                                                                )
+                                                        ) {
+                                                                Icon(
+                                                                        imageVector =
+                                                                                Icons.Default
+                                                                                        .Refresh,
+                                                                        contentDescription = null,
+                                                                        modifier =
+                                                                                Modifier.size(18.dp)
+                                                                )
+                                                                Spacer(
+                                                                        modifier =
+                                                                                Modifier.width(8.dp)
+                                                                )
+                                                                Text("Reset")
+                                                        }
 
                                                         Button(
                                                                 onClick = {

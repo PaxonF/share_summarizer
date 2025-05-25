@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.paxonf.sharesummarizer"
-    compileSdk = 34 // Or the latest stable SDK
+    compileSdk = 34 // Stable API level for current setup
 
     defaultConfig {
         applicationId = "com.paxonf.sharesummarizer"
@@ -68,8 +68,8 @@ dependencies {
     // JetBrains Markdown library
     implementation("org.jetbrains:markdown:0.5.0")
     
-    // Compose UI dependencies - use a specific BOM version that is stable and known to work with the markdown library
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    // Compose UI dependencies - use a recent stable BOM version that includes SliderState
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -92,7 +92,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
