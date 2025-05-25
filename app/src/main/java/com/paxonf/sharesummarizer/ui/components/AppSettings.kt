@@ -19,8 +19,10 @@ import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -559,17 +561,28 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                                         .onSurfaceVariant
                                                                                 )
                                                                         }
-                                                                        Icon(
-                                                                                imageVector =
-                                                                                        Icons.Default
-                                                                                                .Edit, // Or a dropdown arrow if preferred
-                                                                                contentDescription =
-                                                                                        "Change AI Model",
-                                                                                tint =
-                                                                                        MaterialTheme
-                                                                                                .colorScheme
-                                                                                                .primary
-                                                                        )
+                                                                        IconButton(
+                                                                                onClick = {
+                                                                                        showModelSelectionDialog =
+                                                                                                true
+                                                                                }
+                                                                        ) {
+                                                                                Icon(
+                                                                                        imageVector =
+                                                                                                Icons.Default
+                                                                                                        .Edit,
+                                                                                        contentDescription =
+                                                                                                "Change AI Model",
+                                                                                        tint =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .primary,
+                                                                                        modifier =
+                                                                                                Modifier.size(
+                                                                                                        20.dp
+                                                                                                )
+                                                                                )
+                                                                        }
                                                                 }
                                                         }
                                                 }
@@ -731,7 +744,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                                 .SpaceBetween,
                                                                                 verticalAlignment =
                                                                                         Alignment
-                                                                                                .Top
+                                                                                                .CenterVertically
                                                                         ) {
                                                                                 Column(
                                                                                         modifier =
@@ -796,21 +809,30 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                                                 .lineHeight
                                                                                         )
                                                                                 }
-                                                                                Icon(
-                                                                                        imageVector =
-                                                                                                Icons.Default
-                                                                                                        .Edit,
-                                                                                        contentDescription =
-                                                                                                "Edit Prompt",
-                                                                                        tint =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary,
-                                                                                        modifier =
-                                                                                                Modifier.size(
-                                                                                                        20.dp
-                                                                                                )
-                                                                                )
+                                                                                IconButton(
+                                                                                        onClick = {
+                                                                                                tempPromptInput =
+                                                                                                        summaryPromptInput
+                                                                                                showPromptDialog =
+                                                                                                        true
+                                                                                        }
+                                                                                ) {
+                                                                                        Icon(
+                                                                                                imageVector =
+                                                                                                        Icons.Default
+                                                                                                                .Edit,
+                                                                                                contentDescription =
+                                                                                                        "Edit Prompt",
+                                                                                                tint =
+                                                                                                        MaterialTheme
+                                                                                                                .colorScheme
+                                                                                                                .primary,
+                                                                                                modifier =
+                                                                                                        Modifier.size(
+                                                                                                                20.dp
+                                                                                                        )
+                                                                                        )
+                                                                                }
                                                                         }
                                                                 }
                                                         }
@@ -1593,9 +1615,7 @@ private fun ModelSelectionDialog(
 
         AlertDialog(
                 onDismissRequest = onDismiss,
-                icon = {
-                        Icon(Icons.Filled.Edit, contentDescription = "Select Model")
-                }, // Optional icon
+                icon = { Icon(Icons.Filled.Tune, contentDescription = "Select Model") },
                 title = { Text("Select AI Model") },
                 text = {
                         LazyColumn {
@@ -1634,7 +1654,7 @@ private fun ModelSelectionDialog(
                         }
                 },
                 confirmButton = {
-                        Button(onClick = { onConfirm(tempSelectedModelId) }) { Text("Confirm") }
+                        Button(onClick = { onConfirm(tempSelectedModelId) }) { Text("Set") }
                 },
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
         )
@@ -1651,7 +1671,7 @@ private fun ApiKeyEditDialog(
 
         AlertDialog(
                 onDismissRequest = onDismiss,
-                icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit API Key") },
+                icon = { Icon(Icons.Filled.Key, contentDescription = "Edit API Key") },
                 title = { Text("Edit Gemini API Key") },
                 text = {
                         OutlinedTextField(
