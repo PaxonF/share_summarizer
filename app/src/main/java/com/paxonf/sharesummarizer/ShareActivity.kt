@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -63,15 +64,12 @@ class ShareActivity : ComponentActivity() {
                 var showBottomSheet by remember { mutableStateOf(true) }
 
                 // Get the selected color based on user preferences
-                val containerColor =
-                        when (appPreferences.bottomSheetColorOption) {
-                            "primary" -> MaterialTheme.colorScheme.primaryContainer
-                            "secondary" -> MaterialTheme.colorScheme.secondaryContainer
-                            "tertiary" -> MaterialTheme.colorScheme.tertiaryContainer
-                            "custom" ->
-                                    Color(appPreferences.customBottomSheetColor).copy(alpha = 0.9f)
-                            else -> MaterialTheme.colorScheme.primaryContainer
-                        }
+                val (containerColor, contentColor) = // Destructure to get both colors
+                        getThemeColorsForShareActivity(
+                                appPreferences.bottomSheetColorOption,
+                                Color(appPreferences.customBottomSheetColor),
+                                MaterialTheme.colorScheme
+                        )
 
                 if (showBottomSheet) {
                     LaunchedEffect(
@@ -89,7 +87,8 @@ class ShareActivity : ComponentActivity() {
                             onRetry = { originalTextForRetry ->
                                 summaryViewModel.generateSummary(originalTextForRetry)
                             },
-                            containerColor = containerColor
+                            containerColor = containerColor,
+                            contentColor = contentColor // Pass contentColor
                     )
                 } else {
                     // The activity will finish when showBottomSheet is false
@@ -121,5 +120,40 @@ class ShareActivity : ComponentActivity() {
                 finishAndRemoveTask() // Close if new intent is not valid
             }
         }
+    }
+
+    // Helper function to determine container and content colors for ShareActivity
+    private fun getThemeColorsForShareActivity(
+            selectedOption: String,
+            customColor: Color,
+            materialColorScheme: androidx.compose.material3.ColorScheme
+    ): Pair<Color, Color> {
+        val containerColorResult =
+                when (selectedOption) {
+                    "system_background" -> materialColorScheme.background
+                    "system_primary", "primary" -> materialColorScheme.primaryContainer
+                    "system_secondary", "secondary" -> materialColorScheme.secondaryContainer
+                    "system_tertiary", "tertiary" -> materialColorScheme.tertiaryContainer
+                    "light" -> Color.White
+                    "sepia" -> Color(0xFFF5EEDC)
+                    "dark" -> Color(0xFF121212)
+                    "custom" -> customColor.copy(alpha = 0.9f) // Maintain existing alpha for custom
+                    else ->
+                            materialColorScheme
+                                    .background // Default to background or a sensible default
+                }
+
+        val contentColorResult =
+                when (selectedOption) {
+                    "system_background" -> materialColorScheme.onBackground
+                    "system_primary", "primary" -> materialColorScheme.onPrimaryContainer
+                    "system_secondary", "secondary" -> materialColorScheme.onSecondaryContainer
+                    "system_tertiary", "tertiary" -> materialColorScheme.onTertiaryContainer
+                    "light", "sepia", "dark", "custom" -> {
+                        if (containerColorResult.luminance() > 0.5f) Color.Black else Color.White
+                    }
+                    else -> materialColorScheme.onBackground
+                }
+        return Pair(containerColorResult, contentColorResult)
     }
 }

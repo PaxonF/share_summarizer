@@ -41,7 +41,6 @@ import com.paxonf.sharesummarizer.data.AppPreferences
 import com.paxonf.sharesummarizer.ui.theme.RobotoFlex
 import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
 import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
-import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
 
 // Theme option identifiers
 private const val THEME_OPTION_SYSTEM_BACKGROUND = "system_background"
@@ -58,6 +57,8 @@ private val LightThemeColor = Color.White
 private val SepiaThemeColor = Color(0xFFF5EEDC)
 private val DarkThemeColor = Color(0xFF121212)
 
+private const val PREVIEW_ARTICLE_URL = "https://arygulati.substack.com/p/the-fourth-dimension"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
@@ -66,7 +67,6 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 mutableIntStateOf(settingsViewModel.summaryLength)
         }
         var selectedModel by remember { mutableStateOf(settingsViewModel.selectedModel) }
-        var isModelDropdownExpanded by remember { mutableStateOf(false) }
         var summaryPromptInput by remember {
                 mutableStateOf(
                         settingsViewModel.summaryPrompt.ifEmpty {
@@ -233,6 +233,9 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
+        // Observe the preview summary state from ViewModel
+        val previewSummaryUiState by settingsViewModel.previewSummaryUiState.collectAsState()
+
         // Preview bottom sheet with example content
         if (showPreviewBottomSheet) {
                 val (containerColorForSheet, contentColorForSheet) =
@@ -243,14 +246,12 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
 
                 SummaryBottomSheet(
-                        uiState =
-                                SummaryUiState(
-                                        summary = getExampleSummary(),
-                                        originalText = getExampleOriginalText(),
-                                        isLoading = false
-                                ),
-                        onDismiss = { showPreviewBottomSheet = false },
-                        onRetry = { /* No-op for preview */},
+                        uiState = previewSummaryUiState,
+                        onDismiss = {
+                                showPreviewBottomSheet = false
+                                settingsViewModel.clearPreviewSummary()
+                        },
+                        onRetry = { settingsViewModel.generatePreviewSummary(PREVIEW_ARTICLE_URL) },
                         containerColor = containerColorForSheet,
                         contentColor = contentColorForSheet
                 )
@@ -285,7 +286,12 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                         ) + fadeOut(animationSpec = tween(300))
                         ) {
                                 ExtendedFloatingActionButton(
-                                        onClick = { showPreviewBottomSheet = true },
+                                        onClick = {
+                                                settingsViewModel.generatePreviewSummary(
+                                                        PREVIEW_ARTICLE_URL
+                                                )
+                                                showPreviewBottomSheet = true
+                                        },
                                         icon = {
                                                 Icon(
                                                         imageVector = Icons.Default.PlayArrow,
@@ -579,8 +585,14 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 ) { // Main column for the new section
                                                         // === New Card structure for "Summary
                                                         // Length" section ===
-                                                        OutlinedCard(
-                                                                modifier = Modifier.fillMaxWidth()
+                                                        ElevatedCard(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                elevation =
+                                                                        CardDefaults
+                                                                                .elevatedCardElevation(
+                                                                                        defaultElevation =
+                                                                                                2.dp
+                                                                                )
                                                         ) {
                                                                 Column(
                                                                         modifier =
@@ -618,7 +630,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                         color =
                                                                                                 MaterialTheme
                                                                                                         .colorScheme
-                                                                                                        .onSurface // Or .primary for more emphasis
+                                                                                                        .primary
                                                                                 )
                                                                                 Text(
                                                                                         getLengthLabel(
@@ -634,7 +646,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                         color =
                                                                                                 MaterialTheme
                                                                                                         .colorScheme
-                                                                                                        .primary
+                                                                                                        .onSurfaceVariant
                                                                                 )
                                                                         }
                                                                         Slider(
@@ -1247,16 +1259,6 @@ private fun BottomSheetThemeSelection(
                         THEME_OPTION_SYSTEM_TERTIARY to "Tertiary"
                 )
 
-        val systemThemeDescriptions =
-                mapOf(
-                        THEME_OPTION_SYSTEM_BACKGROUND to
-                                "Matches your device's default background.",
-                        THEME_OPTION_SYSTEM_PRIMARY to "Uses your device's primary accent color.",
-                        THEME_OPTION_SYSTEM_SECONDARY to
-                                "Uses your device's secondary accent color.",
-                        THEME_OPTION_SYSTEM_TERTIARY to "Uses your device's tertiary accent color."
-                )
-
         data class DirectThemeInfo(
                 val id: String,
                 val title: String,
@@ -1520,53 +1522,9 @@ fun AppSettingsScreenPreview() {
         ShareSummarizerTheme {
                 val context = LocalContext.current
                 val dummyPrefs = AppPreferences(context)
-                val dummyViewModel = SettingsViewModel(dummyPrefs)
+                val dummyViewModel = SettingsViewModel(dummyPrefs, context)
                 AppSettingsScreen(settingsViewModel = dummyViewModel)
         }
-}
-
-// Helper functions for example content
-private fun getExampleSummary(): String {
-        return """
-# Article Summary: The Future of AI Technology
-
-**Source:** TechNews Daily | **Author:** Dr. Sarah Johnson | **Date:** December 2024
-
-## Key Points
-
-**Artificial Intelligence Revolution**: The article discusses how AI technology is rapidly transforming various industries, from healthcare to transportation.
-
-**Machine Learning Advances**: Recent breakthroughs in machine learning algorithms have enabled more sophisticated pattern recognition and decision-making capabilities.
-
-**Ethical Considerations**: The piece emphasizes the importance of developing AI systems with built-in ethical guidelines and transparency measures.
-
-## Main Takeaways
-
-- AI adoption is accelerating across multiple sectors
-- Investment in AI research has increased by 300% in the past year  
-- Regulatory frameworks are being developed to ensure responsible AI deployment
-- The technology promises to enhance human capabilities rather than replace them
-
-*This summary demonstrates how your chosen color theme will appear when viewing AI-generated content summaries.*
-        """.trimIndent()
-}
-
-private fun getExampleOriginalText(): String {
-        return """
-The Future of AI Technology: A Comprehensive Look at What's Coming Next
-
-By Dr. Sarah Johnson, TechNews Daily, December 2024
-
-Artificial intelligence is no longer a concept confined to science fiction. Today, AI technology is rapidly transforming industries across the globe, from healthcare and finance to transportation and entertainment. As we look toward the future, the potential applications and implications of AI continue to expand at an unprecedented pace.
-
-Recent breakthroughs in machine learning algorithms have enabled more sophisticated pattern recognition and decision-making capabilities. These advances are making it possible for AI systems to process and analyze vast amounts of data with remarkable accuracy and speed. Companies are investing heavily in AI research and development, with funding increasing by over 300% in the past year alone.
-
-However, with great power comes great responsibility. The article emphasizes the critical importance of developing AI systems with built-in ethical guidelines and transparency measures. As AI becomes more integrated into our daily lives, ensuring that these systems operate fairly and transparently is paramount.
-
-The regulatory landscape is also evolving to keep pace with technological advancement. Governments worldwide are working to establish frameworks that promote innovation while protecting citizens' rights and privacy. The goal is not to stifle progress but to ensure that AI development proceeds in a responsible and beneficial manner.
-
-Looking ahead, experts predict that AI will continue to enhance human capabilities rather than replace them entirely. The focus is shifting toward creating collaborative systems where humans and AI work together to solve complex problems and improve quality of life for everyone.
-        """.trimIndent()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

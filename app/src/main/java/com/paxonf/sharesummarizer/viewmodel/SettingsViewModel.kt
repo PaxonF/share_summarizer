@@ -1,10 +1,24 @@
 package com.paxonf.sharesummarizer.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.paxonf.sharesummarizer.data.AppPreferences
 import com.paxonf.sharesummarizer.utils.Constants
+import com.paxonf.sharesummarizer.utils.TextSummarizer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel() {
+class SettingsViewModel(private val appPreferences: AppPreferences, private val context: Context) :
+        ViewModel() {
+
+    private val textSummarizer = TextSummarizer(context)
+
+    // StateFlow for preview summary
+    private val _previewSummaryUiState = MutableStateFlow(SummaryUiState())
+    val previewSummaryUiState: StateFlow<SummaryUiState> = _previewSummaryUiState.asStateFlow()
 
     val apiKey: String
         get() = appPreferences.apiKey
@@ -67,5 +81,34 @@ class SettingsViewModel(private val appPreferences: AppPreferences) : ViewModel(
 
     fun saveCustomBottomSheetColor(color: Int) {
         appPreferences.customBottomSheetColor = color
+    }
+
+    fun generatePreviewSummary(articleUrl: String) {
+        viewModelScope.launch {
+            _previewSummaryUiState.value =
+                    SummaryUiState(isLoading = true, originalText = articleUrl)
+            val summary =
+                    textSummarizer.summarize(
+                            text = articleUrl,
+                            summaryLength = summaryLength,
+                            apiKey = apiKey,
+                            modelId = selectedModel,
+                            summaryPrompt = summaryPrompt.ifEmpty { getDefaultPrompt() }
+                    )
+            if (summary.startsWith("Error") ||
+                            summary.startsWith("API Error") ||
+                            summary.startsWith("Network error")
+            ) {
+                _previewSummaryUiState.value =
+                        SummaryUiState(error = summary, originalText = articleUrl)
+            } else {
+                _previewSummaryUiState.value =
+                        SummaryUiState(summary = summary, originalText = articleUrl)
+            }
+        }
+    }
+
+    fun clearPreviewSummary() {
+        _previewSummaryUiState.value = SummaryUiState()
     }
 }
