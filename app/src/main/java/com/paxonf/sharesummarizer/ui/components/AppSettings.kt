@@ -62,7 +62,8 @@ private val LightThemeColor = Color.White
 private val SepiaThemeColor = Color(0xFFF5EEDC)
 private val DarkThemeColor = Color(0xFF121212)
 
-private const val PREVIEW_ARTICLE_URL = "https://arygulati.substack.com/p/the-fourth-dimension"
+private const val PREVIEW_ARTICLE_URL =
+        "https://vickiboykis.com/2024/11/09/why-are-we-using-llms-as-calculators/"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
