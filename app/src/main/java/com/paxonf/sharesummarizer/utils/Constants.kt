@@ -2,8 +2,7 @@ package com.paxonf.sharesummarizer.utils
 
 object Constants {
     const val DEFAULT_SUMMARY_PROMPT =
-            """
-Summarize the following text, which may be a news article, a blog post, a research paper, or any other large amount of text.
+            """Summarize the following text, which may be a news article, a blog post, a research paper, or any other large amount of text.
 
 You should use raw markdown formatting to make the summary more readable, and only in appropriate ways:
 
@@ -19,6 +18,5 @@ The beginning of your response should be in the following format. Any fields tha
 *Date: <date>*
 *Source: <source>*
 
-Following this, you may provide a summary using your best judgement and based on the instructions.
-"""
+Following this, you may provide a summary using your best judgement and based on the instructions."""
 }
