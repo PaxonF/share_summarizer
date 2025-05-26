@@ -47,13 +47,8 @@ class SettingsViewModel(private val appPreferences: AppPreferences, private val 
     val customBottomSheetColor: Int
         get() = appPreferences.customBottomSheetColor
 
-    val availableColorOptions =
-            mapOf(
-                    "primary" to "Material You: Primary Theme Color",
-                    "secondary" to "Material You: Secondary Theme Color",
-                    "tertiary" to "Material You: Tertiary Theme Color",
-                    "custom" to "Custom Color"
-            )
+    val bottomSheetTextSizeMultiplier: Float
+        get() = appPreferences.bottomSheetTextSizeMultiplier
 
     fun getDefaultPrompt(): String {
         return Constants.DEFAULT_SUMMARY_PROMPT
@@ -81,6 +76,10 @@ class SettingsViewModel(private val appPreferences: AppPreferences, private val 
 
     fun saveCustomBottomSheetColor(color: Int) {
         appPreferences.customBottomSheetColor = color
+    }
+
+    fun saveBottomSheetTextSizeMultiplier(multiplier: Float) {
+        appPreferences.bottomSheetTextSizeMultiplier = multiplier
     }
 
     fun generatePreviewSummary(articleUrl: String) {

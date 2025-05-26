@@ -26,12 +26,18 @@ class AppPreferences(private val context: Context) {
         set(value) = preferences.edit { putString(KEY_SUMMARY_PROMPT, value) }
 
     var bottomSheetColorOption: String
-        get() = preferences.getString(KEY_BOTTOM_SHEET_COLOR, "primary") ?: "primary"
+        get() =
+                preferences.getString(KEY_BOTTOM_SHEET_COLOR, "system_background")
+                        ?: "system_background"
         set(value) = preferences.edit { putString(KEY_BOTTOM_SHEET_COLOR, value) }
 
     var customBottomSheetColor: Int
         get() = preferences.getInt(KEY_CUSTOM_BOTTOM_SHEET_COLOR, 0xFF6750A4.toInt())
         set(value) = preferences.edit { putInt(KEY_CUSTOM_BOTTOM_SHEET_COLOR, value) }
+
+    var bottomSheetTextSizeMultiplier: Float
+        get() = preferences.getFloat(KEY_BOTTOM_SHEET_TEXT_SIZE_MULTIPLIER, 1.0f)
+        set(value) = preferences.edit { putFloat(KEY_BOTTOM_SHEET_TEXT_SIZE_MULTIPLIER, value) }
 
     companion object {
         private const val PREFERENCES_NAME = "share_summarizer_prefs"
@@ -41,5 +47,7 @@ class AppPreferences(private val context: Context) {
         private const val KEY_SUMMARY_PROMPT = "summary_prompt"
         private const val KEY_BOTTOM_SHEET_COLOR = "bottom_sheet_color"
         private const val KEY_CUSTOM_BOTTOM_SHEET_COLOR = "custom_bottom_sheet_color"
+        private const val KEY_BOTTOM_SHEET_TEXT_SIZE_MULTIPLIER =
+                "bottom_sheet_text_size_multiplier"
     }
 }

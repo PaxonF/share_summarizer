@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,13 +37,11 @@ fun SummaryBottomSheet(
         onDismiss: () -> Unit,
         onRetry: (String) -> Unit,
         containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor: Color = MaterialTheme.colorScheme.onSurface
+        contentColor: Color = MaterialTheme.colorScheme.onSurface,
+        textSizeMultiplier: Float = 1.0f
 ) {
         val scrollState = rememberScrollState()
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-
-        val configuration = LocalConfiguration.current
-        val screenHeightDp = configuration.screenHeightDp.dp
 
         val loadingStateHeight = 200.dp // Fixed height for loading state content
 
@@ -213,7 +210,8 @@ fun SummaryBottomSheet(
                                                 MarkdownText(
                                                         markdown = summary,
                                                         modifier = Modifier.fillMaxWidth(),
-                                                        color = contentColor
+                                                        color = contentColor,
+                                                        textSizeMultiplier = textSizeMultiplier
                                                 )
                                         }
                                         else -> { // "No summary available"
@@ -246,7 +244,8 @@ fun SummaryBottomSheet(
 private fun MarkdownText(
         markdown: String,
         modifier: Modifier = Modifier,
-        color: Color = MaterialTheme.colorScheme.onSurface
+        color: Color = MaterialTheme.colorScheme.onSurface,
+        textSizeMultiplier: Float
 ) {
         Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Simple markdown parsing for the most common elements
@@ -260,7 +259,22 @@ private fun MarkdownText(
                                 line.startsWith("# ") -> {
                                         Text(
                                                 text = line.substring(2),
-                                                style = MaterialTheme.typography.headlineMedium,
+                                                style =
+                                                        MaterialTheme.typography.headlineMedium
+                                                                .copy(
+                                                                        fontSize =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .headlineMedium
+                                                                                        .fontSize *
+                                                                                        textSizeMultiplier,
+                                                                        lineHeight =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .headlineMedium
+                                                                                        .lineHeight *
+                                                                                        textSizeMultiplier
+                                                                ),
                                                 fontWeight = FontWeight.Bold,
                                                 color = color,
                                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -269,7 +283,19 @@ private fun MarkdownText(
                                 line.startsWith("## ") -> {
                                         Text(
                                                 text = line.substring(3),
-                                                style = MaterialTheme.typography.headlineSmall,
+                                                style =
+                                                        MaterialTheme.typography.headlineSmall.copy(
+                                                                fontSize =
+                                                                        MaterialTheme.typography
+                                                                                .headlineSmall
+                                                                                .fontSize *
+                                                                                textSizeMultiplier,
+                                                                lineHeight =
+                                                                        MaterialTheme.typography
+                                                                                .headlineSmall
+                                                                                .lineHeight *
+                                                                                textSizeMultiplier
+                                                        ),
                                                 fontWeight = FontWeight.Bold,
                                                 color = color,
                                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -278,7 +304,19 @@ private fun MarkdownText(
                                 line.startsWith("### ") -> {
                                         Text(
                                                 text = line.substring(4),
-                                                style = MaterialTheme.typography.titleLarge,
+                                                style =
+                                                        MaterialTheme.typography.titleLarge.copy(
+                                                                fontSize =
+                                                                        MaterialTheme.typography
+                                                                                .titleLarge
+                                                                                .fontSize *
+                                                                                textSizeMultiplier,
+                                                                lineHeight =
+                                                                        MaterialTheme.typography
+                                                                                .titleLarge
+                                                                                .lineHeight *
+                                                                                textSizeMultiplier
+                                                        ),
                                                 fontWeight = FontWeight.Bold,
                                                 color = color,
                                                 modifier = Modifier.padding(vertical = 2.dp)
@@ -287,7 +325,19 @@ private fun MarkdownText(
                                 line.startsWith("**") && line.endsWith("**") -> {
                                         Text(
                                                 text = line.substring(2, line.length - 2),
-                                                style = MaterialTheme.typography.bodyLarge,
+                                                style =
+                                                        MaterialTheme.typography.bodyLarge.copy(
+                                                                fontSize =
+                                                                        MaterialTheme.typography
+                                                                                .bodyLarge
+                                                                                .fontSize *
+                                                                                textSizeMultiplier,
+                                                                lineHeight =
+                                                                        MaterialTheme.typography
+                                                                                .bodyLarge
+                                                                                .lineHeight *
+                                                                                textSizeMultiplier
+                                                        ),
                                                 fontWeight = FontWeight.Bold,
                                                 color = color
                                         )
@@ -299,12 +349,42 @@ private fun MarkdownText(
                                         ) {
                                                 Text(
                                                         text = "•",
-                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        style =
+                                                                MaterialTheme.typography.bodyMedium
+                                                                        .copy(
+                                                                                fontSize =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .fontSize *
+                                                                                                textSizeMultiplier,
+                                                                                lineHeight =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .lineHeight *
+                                                                                                textSizeMultiplier
+                                                                        ),
                                                         color = color
                                                 )
                                                 Text(
                                                         text = line.substring(2),
-                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        style =
+                                                                MaterialTheme.typography.bodyMedium
+                                                                        .copy(
+                                                                                fontSize =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .fontSize *
+                                                                                                textSizeMultiplier,
+                                                                                lineHeight =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .lineHeight *
+                                                                                                textSizeMultiplier
+                                                                        ),
                                                         color = color,
                                                         modifier = Modifier.weight(1f)
                                                 )
@@ -320,7 +400,17 @@ private fun MarkdownText(
                                                                 fontStyle =
                                                                         androidx.compose.ui.text
                                                                                 .font.FontStyle
-                                                                                .Italic
+                                                                                .Italic,
+                                                                fontSize =
+                                                                        MaterialTheme.typography
+                                                                                .bodyMedium
+                                                                                .fontSize *
+                                                                                textSizeMultiplier,
+                                                                lineHeight =
+                                                                        MaterialTheme.typography
+                                                                                .bodyMedium
+                                                                                .lineHeight *
+                                                                                textSizeMultiplier
                                                         ),
                                                 color = color.copy(alpha = 0.8f)
                                         )
@@ -328,11 +418,30 @@ private fun MarkdownText(
                                 line.isNotEmpty() -> {
                                         // Handle bold text within regular paragraphs
                                         if (line.contains("**")) {
-                                                FormattedText(text = line, color = color)
+                                                FormattedText(
+                                                        text = line,
+                                                        color = color,
+                                                        textSizeMultiplier = textSizeMultiplier
+                                                )
                                         } else {
                                                 Text(
                                                         text = line,
-                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        style =
+                                                                MaterialTheme.typography.bodyMedium
+                                                                        .copy(
+                                                                                fontSize =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .fontSize *
+                                                                                                textSizeMultiplier,
+                                                                                lineHeight =
+                                                                                        MaterialTheme
+                                                                                                .typography
+                                                                                                .bodyMedium
+                                                                                                .lineHeight *
+                                                                                                textSizeMultiplier
+                                                                        ),
                                                         color = color
                                                 )
                                         }
@@ -344,7 +453,7 @@ private fun MarkdownText(
 }
 
 @Composable
-private fun FormattedText(text: String, color: Color) {
+private fun FormattedText(text: String, color: Color, textSizeMultiplier: Float) {
         val parts = text.split("**")
         val formattedText = buildAnnotatedString {
                 parts.forEachIndexed { index, part ->
@@ -360,7 +469,19 @@ private fun FormattedText(text: String, color: Color) {
                 }
         }
 
-        Text(text = formattedText, style = MaterialTheme.typography.bodyMedium, color = color)
+        Text(
+                text = formattedText,
+                style =
+                        MaterialTheme.typography.bodyMedium.copy(
+                                fontSize =
+                                        MaterialTheme.typography.bodyMedium.fontSize *
+                                                textSizeMultiplier,
+                                lineHeight =
+                                        MaterialTheme.typography.bodyMedium.lineHeight *
+                                                textSizeMultiplier
+                        ),
+                color = color
+        )
 }
 
 // Helper function to generate styled HTML from markdown

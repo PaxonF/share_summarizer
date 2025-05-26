@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -107,6 +106,9 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         var customColor by remember {
                 mutableStateOf(Color(settingsViewModel.customBottomSheetColor))
         }
+        var bottomSheetTextSizeMultiplierSliderPosition by remember {
+                mutableStateOf(settingsViewModel.bottomSheetTextSizeMultiplier)
+        }
 
         // State for the prompt editing dialog
         var showPromptDialog by remember { mutableStateOf(false) }
@@ -161,6 +163,9 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
         var initialCustomColor by remember {
                 mutableStateOf(Color(settingsViewModel.customBottomSheetColor))
         }
+        var initialBottomSheetTextSizeMultiplier by remember {
+                mutableStateOf(settingsViewModel.bottomSheetTextSizeMultiplier)
+        }
 
         // Compute whether anything has changed
         val hasChanges =
@@ -171,19 +176,23 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                         summaryPromptInput,
                         selectedColorOption,
                         customColor,
+                        bottomSheetTextSizeMultiplierSliderPosition,
                         initialApiKey,
                         initialSummaryLength,
                         initialSelectedModel,
                         initialSummaryPrompt,
                         initialColorOption,
-                        initialCustomColor
+                        initialCustomColor,
+                        initialBottomSheetTextSizeMultiplier
                 ) {
                         apiKeyInput != initialApiKey ||
                                 summaryLengthSliderPosition != initialSummaryLength ||
                                 selectedModel != initialSelectedModel ||
                                 summaryPromptInput != initialSummaryPrompt ||
                                 selectedColorOption != initialColorOption ||
-                                customColor != initialCustomColor
+                                customColor != initialCustomColor ||
+                                bottomSheetTextSizeMultiplierSliderPosition !=
+                                        initialBottomSheetTextSizeMultiplier
                 }
 
         // Prompt editing dialog
@@ -259,7 +268,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                         },
                         onRetry = { settingsViewModel.generatePreviewSummary(PREVIEW_ARTICLE_URL) },
                         containerColor = containerColorForSheet,
-                        contentColor = contentColorForSheet
+                        contentColor = contentColorForSheet,
+                        textSizeMultiplier = settingsViewModel.bottomSheetTextSizeMultiplier
                 )
         }
 
@@ -993,6 +1003,121 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         }
                                                                 }
                                                         }
+
+                                                        // Text Size slider
+                                                        ElevatedCard(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                elevation =
+                                                                        CardDefaults
+                                                                                .elevatedCardElevation(
+                                                                                        defaultElevation =
+                                                                                                2.dp
+                                                                                )
+                                                        ) {
+                                                                Column(
+                                                                        modifier =
+                                                                                Modifier.padding(
+                                                                                        16.dp
+                                                                                ),
+                                                                        verticalArrangement =
+                                                                                Arrangement
+                                                                                        .spacedBy(
+                                                                                                8.dp
+                                                                                        ) // Spacing
+                                                                        // inside
+                                                                        // the
+                                                                        // card
+                                                                        ) {
+                                                                        Row(
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth(),
+                                                                                horizontalArrangement =
+                                                                                        Arrangement
+                                                                                                .SpaceBetween,
+                                                                                verticalAlignment =
+                                                                                        Alignment
+                                                                                                .CenterVertically
+                                                                        ) {
+                                                                                Text(
+                                                                                        text =
+                                                                                                "Text Size",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .titleSmall,
+                                                                                        fontWeight =
+                                                                                                FontWeight
+                                                                                                        .Medium,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .primary
+                                                                                )
+                                                                                Text(
+                                                                                        text =
+                                                                                                getTextSizeLabel(
+                                                                                                        bottomSheetTextSizeMultiplierSliderPosition
+                                                                                                ),
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .bodyMedium,
+                                                                                        fontWeight =
+                                                                                                FontWeight
+                                                                                                        .Medium, // Make current value stand out a bit
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
+                                                                                )
+                                                                        }
+                                                                        Slider(
+                                                                                value =
+                                                                                        bottomSheetTextSizeMultiplierSliderPosition,
+                                                                                onValueChange = {
+                                                                                        bottomSheetTextSizeMultiplierSliderPosition =
+                                                                                                it
+                                                                                },
+                                                                                valueRange =
+                                                                                        0.5f..2.0f,
+                                                                                steps = 14,
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth()
+                                                                        )
+                                                                        Row(
+                                                                                modifier =
+                                                                                        Modifier.fillMaxWidth(),
+                                                                                horizontalArrangement =
+                                                                                        Arrangement
+                                                                                                .SpaceBetween
+                                                                        ) {
+                                                                                Text(
+                                                                                        text =
+                                                                                                "50%",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .labelSmall,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
+                                                                                )
+                                                                                Text(
+                                                                                        text =
+                                                                                                "200%",
+                                                                                        style =
+                                                                                                MaterialTheme
+                                                                                                        .typography
+                                                                                                        .labelSmall,
+                                                                                        color =
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .onSurfaceVariant
+                                                                                )
+                                                                        }
+                                                                }
+                                                        }
                                                 }
                                         }
                                 }
@@ -1077,6 +1202,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 initialColorOption
                                                                         customColor =
                                                                                 initialCustomColor
+                                                                        bottomSheetTextSizeMultiplierSliderPosition =
+                                                                                initialBottomSheetTextSizeMultiplier
                                                                 },
                                                                 modifier = Modifier.weight(1f),
                                                                 colors =
@@ -1130,6 +1257,10 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                         customColor
                                                                                                 .toArgb()
                                                                                 )
+                                                                        settingsViewModel
+                                                                                .saveBottomSheetTextSizeMultiplier(
+                                                                                        bottomSheetTextSizeMultiplierSliderPosition
+                                                                                )
 
                                                                         // Update initial values to
                                                                         // match
@@ -1146,6 +1277,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                                 selectedColorOption
                                                                         initialCustomColor =
                                                                                 customColor
+                                                                        initialBottomSheetTextSizeMultiplier =
+                                                                                bottomSheetTextSizeMultiplierSliderPosition
                                                                 },
                                                                 modifier = Modifier.weight(1f),
                                                                 colors =
@@ -1186,6 +1319,11 @@ private fun getLengthLabel(length: Int): String {
                 5 -> "Very Long"
                 else -> "Medium"
         }
+}
+
+private fun getTextSizeLabel(multiplier: Float): String {
+        val percentage = (multiplier * 100).toInt()
+        return "$percentage%"
 }
 
 @Composable
@@ -1726,7 +1864,7 @@ private fun ApiKeyEditDialog(
                                 label = { Text("API Key") },
                                 placeholder = { Text("Enter your Gemini API key") },
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation(),
+                                // visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions =
                                         KeyboardOptions(keyboardType = KeyboardType.Password),
                                 trailingIcon = {
