@@ -4,21 +4,14 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Key
@@ -31,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +34,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.paxonf.sharesummarizer.data.AppPreferences
+import com.paxonf.sharesummarizer.ui.components.dialogs.ApiKeyEditDialog
+import com.paxonf.sharesummarizer.ui.components.dialogs.CustomColorPickerDialog
+import com.paxonf.sharesummarizer.ui.components.dialogs.ModelSelectionDialog
+import com.paxonf.sharesummarizer.ui.components.dialogs.PromptEditDialog
+import com.paxonf.sharesummarizer.ui.components.settings.SettingsSection
+import com.paxonf.sharesummarizer.ui.components.settings.getLengthLabel
+import com.paxonf.sharesummarizer.ui.components.settings.getTextSizeLabel
+import com.paxonf.sharesummarizer.ui.components.theme.BottomSheetThemeSelection
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_CUSTOM
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_DARK
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_LIGHT
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SEPIA
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_BACKGROUND
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_PRIMARY
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_SECONDARY
+import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_TERTIARY
+import com.paxonf.sharesummarizer.ui.components.theme.getThemeColors
 import com.paxonf.sharesummarizer.ui.theme.RobotoFlex
 import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
 import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
@@ -110,21 +119,12 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 mutableStateOf(settingsViewModel.bottomSheetTextSizeMultiplier)
         }
 
-        // State for the prompt editing dialog
+        // State for dialogs
         var showPromptDialog by remember { mutableStateOf(false) }
-        var tempPromptInput by remember { mutableStateOf("") }
-
-        // State for custom color picker dialog
         var showCustomColorDialog by remember { mutableStateOf(false) }
         var dialogCustomColorSelection by remember { mutableStateOf(customColor) }
-
-        // State for model selection dialog
         var showModelSelectionDialog by remember { mutableStateOf(false) }
-
-        // State for API key dialog
         var showApiKeyDialog by remember { mutableStateOf(false) }
-
-        // State for preview bottom sheet
         var showPreviewBottomSheet by remember { mutableStateOf(false) }
 
         // Track the initial values with mutable state to allow updates after saving
@@ -195,7 +195,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                         initialBottomSheetTextSizeMultiplier
                 }
 
-        // Prompt editing dialog
+        // Dialogs
         if (showPromptDialog) {
                 PromptEditDialog(
                         currentPrompt = summaryPromptInput,
@@ -208,22 +208,18 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
-        // Custom Color Picker Dialog
         if (showCustomColorDialog) {
                 CustomColorPickerDialog(
                         initialColor = dialogCustomColorSelection,
                         onColorSelected = { newColor ->
                                 customColor = newColor
-                                selectedColorOption =
-                                        THEME_OPTION_CUSTOM // Select custom theme upon saving a
-                                // color
+                                selectedColorOption = THEME_OPTION_CUSTOM
                                 showCustomColorDialog = false
                         },
                         onDismiss = { showCustomColorDialog = false }
                 )
         }
 
-        // Model Selection Dialog
         if (showModelSelectionDialog) {
                 ModelSelectionDialog(
                         initialSelectedModelId = selectedModel,
@@ -236,7 +232,6 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
         }
 
-        // API Key Edit Dialog
         if (showApiKeyDialog) {
                 ApiKeyEditDialog(
                         currentApiKey = apiKeyInput,
@@ -356,11 +351,8 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                 val baseHorizontalPadding = 16.dp
                                                 val topPadding = 16.dp
                                                 val fabHeight = 56.dp
-                                                val saveCardEstimatedHeight =
-                                                        130.dp // Content + internal padding
-                                                val cardOwnBottomMargin =
-                                                        16.dp // External padding on the save card
-                                                // itself
+                                                val saveCardEstimatedHeight = 130.dp
+                                                val cardOwnBottomMargin = 16.dp
                                                 val desiredSpacingAboveBottomElement = 56.dp
 
                                                 val bottomPaddingForFab =
@@ -379,7 +371,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         bottomPaddingForSaveCard
                                                                 else bottomPaddingForFab
                                                 )
-                                        }(), // Invoke lambda to get PaddingValues
+                                        }(),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                                 item {
@@ -396,509 +388,58 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                 Arrangement.spacedBy(12.dp)
                                                 ) {
                                                         // API Key status card
-                                                        ElevatedCard(
-                                                                modifier =
-                                                                        Modifier.fillMaxWidth()
-                                                                                .clickable {
-                                                                                        showApiKeyDialog =
-                                                                                                true
-                                                                                },
-                                                                elevation =
-                                                                        CardDefaults
-                                                                                .elevatedCardElevation(
-                                                                                        defaultElevation =
-                                                                                                2.dp
-                                                                                )
-                                                        ) {
-                                                                Row(
-                                                                        modifier =
-                                                                                Modifier.fillMaxWidth()
-                                                                                        .padding(
-                                                                                                16.dp
-                                                                                        ),
-                                                                        horizontalArrangement =
-                                                                                Arrangement
-                                                                                        .SpaceBetween,
-                                                                        verticalAlignment =
-                                                                                Alignment
-                                                                                        .CenterVertically
-                                                                ) {
-                                                                        Column(
-                                                                                modifier =
-                                                                                        Modifier.weight(
-                                                                                                1f
-                                                                                        ),
-                                                                                verticalArrangement =
-                                                                                        Arrangement
-                                                                                                .spacedBy(
-                                                                                                        4.dp
-                                                                                                )
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Gemini API Key",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .titleSmall,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                if (apiKeyInput
-                                                                                                                .isEmpty()
-                                                                                                ) {
-                                                                                                        "Not configured"
-                                                                                                } else {
-                                                                                                        "●●●●●●●●●●●●●●●●●●●"
-                                                                                                },
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodySmall,
-                                                                                        color =
-                                                                                                if (apiKeyInput
-                                                                                                                .isEmpty()
-                                                                                                ) {
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .error
-                                                                                                } else {
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .onSurfaceVariant
-                                                                                                },
-                                                                                        fontFamily =
-                                                                                                androidx.compose
-                                                                                                        .ui
-                                                                                                        .text
-                                                                                                        .font
-                                                                                                        .FontFamily
-                                                                                                        .Monospace
-                                                                                )
-                                                                        }
-
-                                                                        Spacer(
-                                                                                Modifier.width(8.dp)
-                                                                        ) // Spacer between text and
-                                                                        // icons
-                                                                        val context =
-                                                                                LocalContext
-                                                                                        .current // Get context for intent
-                                                                        IconButton(
-                                                                                onClick = {
-                                                                                        val intent =
-                                                                                                Intent(
-                                                                                                        Intent.ACTION_VIEW,
-                                                                                                        Uri.parse(
-                                                                                                                "https://aistudio.google.com/app/apikey"
-                                                                                                        )
-                                                                                                )
-                                                                                        context.startActivity(
-                                                                                                intent
-                                                                                        )
-                                                                                },
-                                                                                modifier =
-                                                                                        Modifier.size(
-                                                                                                24.dp
-                                                                                        ) // Standardize touch target size
-                                                                        ) {
-                                                                                Icon(
-                                                                                        imageVector =
-                                                                                                Icons.Outlined
-                                                                                                        .HelpOutline,
-                                                                                        contentDescription =
-                                                                                                "Get API Key Help",
-                                                                                        tint =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant, // Softer tint
-                                                                                        modifier =
-                                                                                                Modifier.size(
-                                                                                                        20.dp
-                                                                                                )
-                                                                                )
-                                                                        }
-                                                                        IconButton(
-                                                                                onClick = {
-                                                                                        showApiKeyDialog =
-                                                                                                true
-                                                                                }
-                                                                        ) {
-                                                                                Icon(
-                                                                                        imageVector =
-                                                                                                Icons.Default
-                                                                                                        .Edit,
-                                                                                        contentDescription =
-                                                                                                "Edit API Key",
-                                                                                        tint =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary,
-                                                                                        modifier =
-                                                                                                Modifier.size(
-                                                                                                        20.dp
-                                                                                                )
-                                                                                )
-                                                                        }
+                                                        ApiKeyCard(
+                                                                apiKey = apiKeyInput,
+                                                                onEditClick = {
+                                                                        showApiKeyDialog = true
                                                                 }
-                                                        }
+                                                        )
 
-                                                        // AI Model Selection Card (Moved here)
-                                                        val currentModelDisplayName =
-                                                                settingsViewModel.availableModels[
-                                                                        selectedModel]
-                                                                        ?: selectedModel
-                                                        ElevatedCard(
-                                                                modifier =
-                                                                        Modifier.fillMaxWidth()
-                                                                                .clickable {
-                                                                                        showModelSelectionDialog =
-                                                                                                true
-                                                                                },
-                                                                elevation =
-                                                                        CardDefaults
-                                                                                .elevatedCardElevation(
-                                                                                        defaultElevation =
-                                                                                                2.dp
-                                                                                )
-                                                        ) {
-                                                                Row(
-                                                                        modifier =
-                                                                                Modifier.fillMaxWidth()
-                                                                                        .padding(
-                                                                                                16.dp
-                                                                                        ),
-                                                                        horizontalArrangement =
-                                                                                Arrangement
-                                                                                        .SpaceBetween,
-                                                                        verticalAlignment =
-                                                                                Alignment
-                                                                                        .CenterVertically
-                                                                ) {
-                                                                        Column(
-                                                                                modifier =
-                                                                                        Modifier.weight(
-                                                                                                1f
-                                                                                        )
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "AI Model",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .titleSmall,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                currentModelDisplayName,
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodyMedium,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                        }
-                                                                        IconButton(
-                                                                                onClick = {
-                                                                                        showModelSelectionDialog =
-                                                                                                true
-                                                                                }
-                                                                        ) {
-                                                                                Icon(
-                                                                                        imageVector =
-                                                                                                Icons.Default
-                                                                                                        .Edit,
-                                                                                        contentDescription =
-                                                                                                "Change AI Model",
-                                                                                        tint =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary,
-                                                                                        modifier =
-                                                                                                Modifier.size(
-                                                                                                        20.dp
-                                                                                                )
-                                                                                )
-                                                                        }
+                                                        // AI Model Selection Card
+                                                        ModelSelectionCard(
+                                                                selectedModel = selectedModel,
+                                                                availableModels =
+                                                                        settingsViewModel
+                                                                                .availableModels,
+                                                                onEditClick = {
+                                                                        showModelSelectionDialog =
+                                                                                true
                                                                 }
-                                                        }
+                                                        )
                                                 }
                                         }
                                 }
 
                                 item {
-                                        Spacer(Modifier.height(8.dp)) // Added spacer
+                                        Spacer(Modifier.height(8.dp))
                                         SettingsSection(title = "Summary Settings") {
                                                 Column(
                                                         verticalArrangement =
                                                                 Arrangement.spacedBy(16.dp)
-                                                ) { // Main column for the new section
-                                                        // === New Card structure for "Summary
-                                                        // Length" section ===
-                                                        ElevatedCard(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                elevation =
-                                                                        CardDefaults
-                                                                                .elevatedCardElevation(
-                                                                                        defaultElevation =
-                                                                                                2.dp
-                                                                                )
-                                                        ) {
-                                                                Column(
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        16.dp
-                                                                                ),
-                                                                        verticalArrangement =
-                                                                                Arrangement
-                                                                                        .spacedBy(
-                                                                                                8.dp
-                                                                                        ) // Spacing
-                                                                        // inside
-                                                                        // the
-                                                                        // card
-                                                                        ) {
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth(),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween,
-                                                                                verticalAlignment =
-                                                                                        Alignment
-                                                                                                .CenterVertically
-                                                                        ) {
-                                                                                Text(
-                                                                                        "Summary Length",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .titleSmall,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary
-                                                                                )
-                                                                                Text(
-                                                                                        getLengthLabel(
-                                                                                                summaryLengthSliderPosition
-                                                                                        ),
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodyMedium,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium, // Make current value stand out a bit
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                        }
-                                                                        Slider(
-                                                                                value =
-                                                                                        summaryLengthSliderPosition
-                                                                                                .toFloat(),
-                                                                                onValueChange = {
-                                                                                        summaryLengthSliderPosition =
-                                                                                                it.toInt()
-                                                                                },
-                                                                                valueRange = 1f..5f,
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth()
-                                                                        )
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth(),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Brief",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .labelSmall,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Detailed",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .labelSmall,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                        }
+                                                ) {
+                                                        // Summary Length Card
+                                                        SummaryLengthCard(
+                                                                summaryLength =
+                                                                        summaryLengthSliderPosition,
+                                                                onLengthChange = {
+                                                                        summaryLengthSliderPosition =
+                                                                                it
                                                                 }
-                                                        }
-                                                        // === End of new Card structure for
-                                                        // "Summary Length" section ===
+                                                        )
 
-                                                        // === Content from old "Summary Prompt"
-                                                        // section ===
-                                                        Column(
-                                                                verticalArrangement =
-                                                                        Arrangement.spacedBy(12.dp)
-                                                        ) {
-                                                                ElevatedCard(
-                                                                        modifier =
-                                                                                Modifier.fillMaxWidth()
-                                                                                        .clickable {
-                                                                                                tempPromptInput =
-                                                                                                        summaryPromptInput
-                                                                                                showPromptDialog =
-                                                                                                        true
-                                                                                        },
-                                                                        elevation =
-                                                                                CardDefaults
-                                                                                        .elevatedCardElevation(
-                                                                                                defaultElevation =
-                                                                                                        2.dp
-                                                                                        )
-                                                                ) {
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth()
-                                                                                                .padding(
-                                                                                                        16.dp
-                                                                                                ),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween,
-                                                                                verticalAlignment =
-                                                                                        Alignment
-                                                                                                .CenterVertically
-                                                                        ) {
-                                                                                Column(
-                                                                                        modifier =
-                                                                                                Modifier.weight(
-                                                                                                        1f
-                                                                                                ),
-                                                                                        verticalArrangement =
-                                                                                                Arrangement
-                                                                                                        .spacedBy(
-                                                                                                                8.dp
-                                                                                                        )
-                                                                                ) {
-                                                                                        Text(
-                                                                                                text =
-                                                                                                        "Custom Prompt",
-                                                                                                style =
-                                                                                                        MaterialTheme
-                                                                                                                .typography
-                                                                                                                .titleSmall,
-                                                                                                fontWeight =
-                                                                                                        FontWeight
-                                                                                                                .Medium,
-                                                                                                color =
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .primary
-                                                                                        )
-                                                                                        Text(
-                                                                                                text =
-                                                                                                        summaryPromptInput
-                                                                                                                .ifEmpty {
-                                                                                                                        "Tap to set a custom prompt"
-                                                                                                                },
-                                                                                                style =
-                                                                                                        MaterialTheme
-                                                                                                                .typography
-                                                                                                                .bodySmall,
-                                                                                                color =
-                                                                                                        if (summaryPromptInput
-                                                                                                                        .isEmpty()
-                                                                                                        )
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSurfaceVariant
-                                                                                                                        .copy(
-                                                                                                                                alpha =
-                                                                                                                                        0.6f
-                                                                                                                        )
-                                                                                                        else
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .onSurfaceVariant,
-                                                                                                maxLines =
-                                                                                                        3,
-                                                                                                overflow =
-                                                                                                        TextOverflow
-                                                                                                                .Ellipsis,
-                                                                                                lineHeight =
-                                                                                                        MaterialTheme
-                                                                                                                .typography
-                                                                                                                .bodySmall
-                                                                                                                .lineHeight
-                                                                                        )
-                                                                                }
-                                                                                IconButton(
-                                                                                        onClick = {
-                                                                                                tempPromptInput =
-                                                                                                        summaryPromptInput
-                                                                                                showPromptDialog =
-                                                                                                        true
-                                                                                        }
-                                                                                ) {
-                                                                                        Icon(
-                                                                                                imageVector =
-                                                                                                        Icons.Default
-                                                                                                                .Edit,
-                                                                                                contentDescription =
-                                                                                                        "Edit Prompt",
-                                                                                                tint =
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .primary,
-                                                                                                modifier =
-                                                                                                        Modifier.size(
-                                                                                                                20.dp
-                                                                                                        )
-                                                                                        )
-                                                                                }
-                                                                        }
+                                                        // Custom Prompt Card
+                                                        CustomPromptCard(
+                                                                summaryPrompt = summaryPromptInput,
+                                                                onEditClick = {
+                                                                        showPromptDialog = true
                                                                 }
-                                                        }
-                                                        // === End of content from old "Summary
-                                                        // Prompt" section ===
+                                                        )
                                                 }
                                         }
                                 }
 
                                 item {
-                                        Spacer(Modifier.height(8.dp)) // Added spacer
+                                        Spacer(Modifier.height(8.dp))
                                         SettingsSection(title = "Appearance") {
                                                 Column(
                                                         verticalArrangement =
@@ -936,188 +477,15 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                                                         MaterialTheme.colorScheme
                                                         )
 
-                                                        // Custom color picker (only shown when
-                                                        // custom is selected)
-                                                        AnimatedVisibility(
-                                                                visible = false, // No longer shown
-                                                                // inline
-                                                                // selectedColorOption ==
-                                                                // THEME_OPTION_CUSTOM,
-                                                                enter =
-                                                                        expandVertically() +
-                                                                                fadeIn(),
-                                                                exit =
-                                                                        shrinkVertically() +
-                                                                                fadeOut()
-                                                        ) {
-                                                                Card(
-                                                                        modifier =
-                                                                                Modifier.fillMaxWidth(),
-                                                                        colors =
-                                                                                CardDefaults
-                                                                                        .cardColors(
-                                                                                                containerColor =
-                                                                                                        MaterialTheme
-                                                                                                                .colorScheme
-                                                                                                                .surfaceVariant
-                                                                                        )
-                                                                ) {
-                                                                        Column(
-                                                                                modifier =
-                                                                                        Modifier.padding(
-                                                                                                16.dp
-                                                                                        ),
-                                                                                verticalArrangement =
-                                                                                        Arrangement
-                                                                                                .spacedBy(
-                                                                                                        12.dp
-                                                                                                )
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Custom Color",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .titleSmall,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium
-                                                                                )
-
-                                                                                // Use the
-                                                                                // ColorPicker
-                                                                                // component
-                                                                                ColorPicker(
-                                                                                        selectedColor =
-                                                                                                customColor,
-                                                                                        onColorSelected = {
-                                                                                                newColor
-                                                                                                ->
-                                                                                                customColor =
-                                                                                                        newColor
-                                                                                        },
-                                                                                        modifier =
-                                                                                                Modifier.fillMaxWidth()
-                                                                                )
-                                                                        }
-                                                                }
-                                                        }
-
                                                         // Text Size slider
-                                                        ElevatedCard(
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                elevation =
-                                                                        CardDefaults
-                                                                                .elevatedCardElevation(
-                                                                                        defaultElevation =
-                                                                                                2.dp
-                                                                                )
-                                                        ) {
-                                                                Column(
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        16.dp
-                                                                                ),
-                                                                        verticalArrangement =
-                                                                                Arrangement
-                                                                                        .spacedBy(
-                                                                                                8.dp
-                                                                                        ) // Spacing
-                                                                        // inside
-                                                                        // the
-                                                                        // card
-                                                                        ) {
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth(),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween,
-                                                                                verticalAlignment =
-                                                                                        Alignment
-                                                                                                .CenterVertically
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "Text Size",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .titleSmall,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .primary
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                getTextSizeLabel(
-                                                                                                        bottomSheetTextSizeMultiplierSliderPosition
-                                                                                                ),
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .bodyMedium,
-                                                                                        fontWeight =
-                                                                                                FontWeight
-                                                                                                        .Medium, // Make current value stand out a bit
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                        }
-                                                                        Slider(
-                                                                                value =
-                                                                                        bottomSheetTextSizeMultiplierSliderPosition,
-                                                                                onValueChange = {
-                                                                                        bottomSheetTextSizeMultiplierSliderPosition =
-                                                                                                it
-                                                                                },
-                                                                                valueRange =
-                                                                                        0.5f..2.0f,
-                                                                                steps = 14,
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth()
-                                                                        )
-                                                                        Row(
-                                                                                modifier =
-                                                                                        Modifier.fillMaxWidth(),
-                                                                                horizontalArrangement =
-                                                                                        Arrangement
-                                                                                                .SpaceBetween
-                                                                        ) {
-                                                                                Text(
-                                                                                        text =
-                                                                                                "50%",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .labelSmall,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                                Text(
-                                                                                        text =
-                                                                                                "200%",
-                                                                                        style =
-                                                                                                MaterialTheme
-                                                                                                        .typography
-                                                                                                        .labelSmall,
-                                                                                        color =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurfaceVariant
-                                                                                )
-                                                                        }
+                                                        TextSizeCard(
+                                                                textSizeMultiplier =
+                                                                        bottomSheetTextSizeMultiplierSliderPosition,
+                                                                onTextSizeChange = {
+                                                                        bottomSheetTextSizeMultiplierSliderPosition =
+                                                                                it
                                                                 }
-                                                        }
+                                                        )
                                                 }
                                         }
                                 }
@@ -1138,160 +506,49 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                                         ) + fadeOut(),
                                 modifier = Modifier.align(Alignment.BottomCenter)
                         ) {
-                                Card(
-                                        modifier =
-                                                Modifier.fillMaxWidth()
-                                                        .padding(horizontal = 16.dp)
-                                                        .padding(bottom = 16.dp)
-                                                        .navigationBarsPadding(),
-                                        elevation =
-                                                CardDefaults.cardElevation(
-                                                        defaultElevation = 12.dp
-                                                ),
-                                        colors =
-                                                CardDefaults.cardColors(
-                                                        containerColor =
-                                                                MaterialTheme.colorScheme
-                                                                        .primaryContainer
+                                SaveChangesCard(
+                                        onReset = {
+                                                // Reset all values to initial state
+                                                apiKeyInput = initialApiKey
+                                                summaryLengthSliderPosition = initialSummaryLength
+                                                selectedModel = initialSelectedModel
+                                                summaryPromptInput = initialSummaryPrompt
+                                                selectedColorOption = initialColorOption
+                                                customColor = initialCustomColor
+                                                bottomSheetTextSizeMultiplierSliderPosition =
+                                                        initialBottomSheetTextSizeMultiplier
+                                        },
+                                        onSave = {
+                                                settingsViewModel.saveApiKey(apiKeyInput)
+                                                settingsViewModel.saveSummaryLength(
+                                                        summaryLengthSliderPosition
                                                 )
-                                ) {
-                                        Column(
-                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                                Column {
-                                                        Text(
-                                                                text = "Unsaved Changes",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .titleSmall,
-                                                                fontWeight = FontWeight.Medium,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onPrimaryContainer
-                                                        )
-                                                        Text(
-                                                                text = "You have unsaved settings",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .bodySmall,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onPrimaryContainer
-                                                                                .copy(alpha = 0.7f)
-                                                        )
-                                                }
+                                                settingsViewModel.saveSelectedModel(selectedModel)
+                                                settingsViewModel.saveSummaryPrompt(
+                                                        summaryPromptInput
+                                                )
+                                                settingsViewModel.saveBottomSheetColorOption(
+                                                        selectedColorOption
+                                                )
+                                                settingsViewModel.saveCustomBottomSheetColor(
+                                                        customColor.toArgb()
+                                                )
+                                                settingsViewModel.saveBottomSheetTextSizeMultiplier(
+                                                        bottomSheetTextSizeMultiplierSliderPosition
+                                                )
 
-                                                Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement =
-                                                                Arrangement.spacedBy(12.dp)
-                                                ) {
-                                                        OutlinedButton(
-                                                                onClick = {
-                                                                        // Reset all values to
-                                                                        // initial state
-                                                                        apiKeyInput = initialApiKey
-                                                                        summaryLengthSliderPosition =
-                                                                                initialSummaryLength
-                                                                        selectedModel =
-                                                                                initialSelectedModel
-                                                                        summaryPromptInput =
-                                                                                initialSummaryPrompt
-                                                                        selectedColorOption =
-                                                                                initialColorOption
-                                                                        customColor =
-                                                                                initialCustomColor
-                                                                        bottomSheetTextSizeMultiplierSliderPosition =
-                                                                                initialBottomSheetTextSizeMultiplier
-                                                                },
-                                                                modifier = Modifier.weight(1f),
-                                                                colors =
-                                                                        ButtonDefaults
-                                                                                .outlinedButtonColors(
-                                                                                        contentColor =
-                                                                                                MaterialTheme
-                                                                                                        .colorScheme
-                                                                                                        .onSurface
-                                                                                )
-                                                        ) {
-                                                                Icon(
-                                                                        imageVector =
-                                                                                Icons.Default
-                                                                                        .Refresh,
-                                                                        contentDescription = null,
-                                                                        modifier =
-                                                                                Modifier.size(18.dp)
-                                                                )
-                                                                Spacer(
-                                                                        modifier =
-                                                                                Modifier.width(8.dp)
-                                                                )
-                                                                Text("Reset")
-                                                        }
-
-                                                        Button(
-                                                                onClick = {
-                                                                        settingsViewModel
-                                                                                .saveApiKey(
-                                                                                        apiKeyInput
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveSummaryLength(
-                                                                                        summaryLengthSliderPosition
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveSelectedModel(
-                                                                                        selectedModel
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveSummaryPrompt(
-                                                                                        summaryPromptInput
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveBottomSheetColorOption(
-                                                                                        selectedColorOption
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveCustomBottomSheetColor(
-                                                                                        customColor
-                                                                                                .toArgb()
-                                                                                )
-                                                                        settingsViewModel
-                                                                                .saveBottomSheetTextSizeMultiplier(
-                                                                                        bottomSheetTextSizeMultiplierSliderPosition
-                                                                                )
-
-                                                                        // Update initial values to
-                                                                        // match
-                                                                        // current values after
-                                                                        // saving
-                                                                        initialApiKey = apiKeyInput
-                                                                        initialSummaryLength =
-                                                                                summaryLengthSliderPosition
-                                                                        initialSelectedModel =
-                                                                                selectedModel
-                                                                        initialSummaryPrompt =
-                                                                                summaryPromptInput
-                                                                        initialColorOption =
-                                                                                selectedColorOption
-                                                                        initialCustomColor =
-                                                                                customColor
-                                                                        initialBottomSheetTextSizeMultiplier =
-                                                                                bottomSheetTextSizeMultiplierSliderPosition
-                                                                },
-                                                                modifier = Modifier.weight(1f),
-                                                                colors =
-                                                                        ButtonDefaults.buttonColors(
-                                                                                containerColor =
-                                                                                        MaterialTheme
-                                                                                                .colorScheme
-                                                                                                .primary
-                                                                        )
-                                                        ) { Text("Save Settings") }
-                                                }
+                                                // Update initial values to match current values
+                                                // after saving
+                                                initialApiKey = apiKeyInput
+                                                initialSummaryLength = summaryLengthSliderPosition
+                                                initialSelectedModel = selectedModel
+                                                initialSummaryPrompt = summaryPromptInput
+                                                initialColorOption = selectedColorOption
+                                                initialCustomColor = customColor
+                                                initialBottomSheetTextSizeMultiplier =
+                                                        bottomSheetTextSizeMultiplierSliderPosition
                                         }
-                                }
+                                )
                         }
                 }
         }
@@ -1327,324 +584,10 @@ private fun getTextSizeLabel(multiplier: Float): String {
 }
 
 @Composable
-private fun PromptEditDialog(
-        currentPrompt: String,
-        defaultPrompt: String,
-        onDismiss: () -> Unit,
-        onSave: (String) -> Unit
-) {
-        var editedPrompt by remember { mutableStateOf(currentPrompt) }
-
-        AlertDialog(
-                onDismissRequest = onDismiss,
-                title = {
-                        Text(
-                                text = "Edit Summary Prompt",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Medium
-                        )
-                },
-                text = {
-                        Column(
-                                modifier =
-                                        Modifier.fillMaxHeight(), // Fill height to allow weights to
-                                // work
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                                Text(
-                                        text =
-                                                "Customize how the AI summarizes your content. Use a detailed prompt for better results, but keep it concise for higher speed.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                OutlinedTextField(
-                                        value = editedPrompt,
-                                        onValueChange = { editedPrompt = it },
-                                        label = { Text("Prompt") },
-                                        placeholder = {
-                                                Text("Enter your summarization prompt...")
-                                        },
-                                        modifier =
-                                                Modifier.fillMaxWidth()
-                                                        .weight(
-                                                                0.6f
-                                                        ), // Make editable prompt take ~60% of
-                                        // available height
-                                        minLines = 8,
-                                        maxLines = 12,
-                                        trailingIcon = {
-                                                if (editedPrompt.isNotEmpty()) {
-                                                        IconButton(
-                                                                onClick = { editedPrompt = "" }
-                                                        ) {
-                                                                Icon(
-                                                                        imageVector =
-                                                                                Icons.Default.Clear,
-                                                                        contentDescription = "Clear"
-                                                                )
-                                                        }
-                                                }
-                                        }
-                                )
-
-                                // Default prompt reference
-                                ElevatedCard(
-                                        modifier =
-                                                Modifier.fillMaxWidth()
-                                                        .weight(
-                                                                0.4f
-                                                        ), // Make default prompt take ~40% of
-                                        // available height
-                                        elevation =
-                                                CardDefaults.elevatedCardElevation(
-                                                        defaultElevation = 1.dp
-                                                )
-                                ) {
-                                        Column(
-                                                modifier = Modifier.padding(12.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                                Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement =
-                                                                Arrangement.SpaceBetween,
-                                                        verticalAlignment =
-                                                                Alignment.CenterVertically
-                                                ) {
-                                                        Text(
-                                                                text = "Default Prompt",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .labelLarge,
-                                                                fontWeight = FontWeight.Medium,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .primary
-                                                        )
-                                                        TextButton(
-                                                                onClick = {
-                                                                        editedPrompt = defaultPrompt
-                                                                }
-                                                        ) { Text("Use Default") }
-                                                }
-                                                Text(
-                                                        text = defaultPrompt,
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color =
-                                                                MaterialTheme.colorScheme
-                                                                        .onSurfaceVariant,
-                                                        modifier =
-                                                                Modifier.fillMaxWidth()
-                                                                        .heightIn(max = 100.dp)
-                                                                        .verticalScroll(
-                                                                                rememberScrollState()
-                                                                        ),
-                                                        lineHeight =
-                                                                MaterialTheme.typography
-                                                                        .bodySmall
-                                                                        .lineHeight
-                                                )
-                                        }
-                                }
-                        }
-                },
-                confirmButton = {
-                        Button(
-                                onClick = { onSave(editedPrompt) },
-                                enabled = editedPrompt.isNotBlank()
-                        ) { Text("Set") }
-                },
-                dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-                properties = DialogProperties(usePlatformDefaultWidth = false),
-                modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f)
-        )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BottomSheetThemeSelection(
-        currentThemeOption: String,
-        onThemeOptionSelected: (String) -> Unit,
-        customColorValue: Color,
-        materialColorScheme: ColorScheme
-) {
-        var isSystemThemeDropdownExpanded by remember { mutableStateOf(false) }
-
-        val systemThemeSubOptions =
-                mapOf(
-                        THEME_OPTION_SYSTEM_BACKGROUND to "Background",
-                        THEME_OPTION_SYSTEM_PRIMARY to "Primary",
-                        THEME_OPTION_SYSTEM_SECONDARY to "Secondary",
-                        THEME_OPTION_SYSTEM_TERTIARY to "Tertiary"
-                )
-
-        data class DirectThemeInfo(
-                val id: String,
-                val title: String,
-                val description: String,
-                val color: Color
-        )
-
-        val directThemeOptions =
-                listOf(
-                        DirectThemeInfo(
-                                THEME_OPTION_LIGHT,
-                                "Light Theme",
-                                "A clean, bright interface.",
-                                LightThemeColor
-                        ),
-                        DirectThemeInfo(
-                                THEME_OPTION_SEPIA,
-                                "Sepia Theme",
-                                "A warm, paper-like feel for comfortable reading.",
-                                SepiaThemeColor
-                        ),
-                        DirectThemeInfo(
-                                THEME_OPTION_DARK,
-                                "Dark Theme",
-                                "Easy on the eyes in low light conditions.",
-                                DarkThemeColor
-                        ),
-                        DirectThemeInfo(
-                                THEME_OPTION_CUSTOM,
-                                "Custom Color",
-                                "Choose your own unique color.",
-                                customColorValue
-                        )
-                )
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { // Increased spacing for cards
-                // System Theme Dropdown
-                val systemThemeIsActive = currentThemeOption.startsWith("system_")
-                val currentSystemSubOption =
-                        if (systemThemeIsActive) currentThemeOption
-                        else THEME_OPTION_SYSTEM_BACKGROUND
-                val systemThemeDisplayTitle =
-                        if (systemThemeIsActive) {
-                                "System Theme: ${systemThemeSubOptions[currentSystemSubOption] ?: "Background"}"
-                        } else {
-                                "System Theme"
-                        }
-                val systemThemeDisplayColor =
-                        getThemeColors(
-                                        currentSystemSubOption,
-                                        customColorValue,
-                                        materialColorScheme
-                                )
-                                .first
-
-                ExposedDropdownMenuBox(
-                        expanded = isSystemThemeDropdownExpanded,
-                        onExpandedChange = {
-                                isSystemThemeDropdownExpanded = !isSystemThemeDropdownExpanded
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                ) {
-                        StyledThemeOptionCard(
-                                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                                title = systemThemeDisplayTitle,
-                                description = "Adapts to your system's color settings.",
-                                themeColorCircle = systemThemeDisplayColor,
-                                isSelected = systemThemeIsActive,
-                                onClick = {},
-                                isDropdownTrigger = true,
-                                isDropdownExpanded = isSystemThemeDropdownExpanded
-                        )
-
-                        ExposedDropdownMenu(
-                                expanded = isSystemThemeDropdownExpanded,
-                                onDismissRequest = { isSystemThemeDropdownExpanded = false },
-                                modifier = Modifier.fillMaxWidth()
-                        ) {
-                                systemThemeSubOptions.forEach { (optionId, displayName) ->
-                                        val (optionContainerColor, _) =
-                                                getThemeColors(
-                                                        optionId,
-                                                        customColorValue,
-                                                        materialColorScheme
-                                                )
-                                        DropdownMenuItem(
-                                                text = { Text(displayName) },
-                                                onClick = {
-                                                        onThemeOptionSelected(optionId)
-                                                        isSystemThemeDropdownExpanded = false
-                                                },
-                                                leadingIcon = { // Add color preview to dropdown
-                                                        // item
-                                                        Surface(
-                                                                modifier = Modifier.size(24.dp),
-                                                                shape = CircleShape,
-                                                                color = optionContainerColor,
-                                                                border =
-                                                                        BorderStroke(
-                                                                                1.dp,
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .outline
-                                                                        )
-                                                        ) {}
-                                                },
-                                                trailingIcon =
-                                                        if (currentThemeOption == optionId) {
-                                                                {
-                                                                        Icon(
-                                                                                Icons.Filled.Check,
-                                                                                contentDescription =
-                                                                                        "Selected"
-                                                                        )
-                                                                }
-                                                        } else null,
-                                                colors =
-                                                        MenuDefaults.itemColors(
-                                                                // Optional: customize item colors
-                                                                // if needed
-                                                                )
-                                        )
-                                }
-                        }
-                }
-
-                // Direct Theme Buttons
-                directThemeOptions.forEach { themeInfo ->
-                        StyledThemeOptionCard(
-                                title = themeInfo.title,
-                                description = themeInfo.description,
-                                themeColorCircle =
-                                        if (themeInfo.id == THEME_OPTION_CUSTOM) customColorValue
-                                        else themeInfo.color,
-                                isSelected = currentThemeOption == themeInfo.id,
-                                onClick = { onThemeOptionSelected(themeInfo.id) }
-                        )
-                }
-        }
-}
-
-@Composable
-private fun StyledThemeOptionCard(
-        title: String,
-        description: String?,
-        themeColorCircle: Color, // Color for the small preview circle
-        isSelected: Boolean,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier, // Allow passing a modifier, e.g. for menuAnchor
-        isDropdownTrigger: Boolean = false, // To show dropdown arrow
-        isDropdownExpanded: Boolean = false // State of dropdown for arrow direction
-) {
-        Card(
-                modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-                colors =
-                        CardDefaults.cardColors(
-                                containerColor =
-                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor =
-                                        if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                border =
-                        if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        else CardDefaults.outlinedCardBorder(enabled = true)
+private fun ApiKeyCard(apiKey: String, onEditClick: () -> Unit) {
+        ElevatedCard(
+                modifier = Modifier.fillMaxWidth().clickable { onEditClick() },
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
         ) {
                 Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -1656,84 +599,326 @@ private fun StyledThemeOptionCard(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                                 Text(
-                                        text = title,
+                                        text = "Gemini API Key",
                                         style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary
                                 )
-                                if (description != null) {
-                                        Text(
-                                                text = description,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color =
-                                                        (if (isSelected)
-                                                                        MaterialTheme.colorScheme
-                                                                                .onPrimaryContainer
-                                                                else
-                                                                        MaterialTheme.colorScheme
-                                                                                .onSurfaceVariant)
-                                                                .copy(alpha = 0.7f)
-                                        )
-                                }
+                                Text(
+                                        text =
+                                                if (apiKey.isEmpty()) "Not configured"
+                                                else "●●●●●●●●●●●●●●●●●●●",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color =
+                                                if (apiKey.isEmpty())
+                                                        MaterialTheme.colorScheme.error
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontFamily =
+                                                androidx.compose.ui.text.font.FontFamily.Monospace
+                                )
                         }
-                        Spacer(
-                                Modifier.width(16.dp)
-                        ) // Increased spacer for better separation before right-aligned elements
 
-                        if (isDropdownTrigger) {
+                        Spacer(Modifier.width(8.dp))
+                        val context = LocalContext.current
+                        IconButton(
+                                onClick = {
+                                        val intent =
+                                                Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        Uri.parse(
+                                                                "https://aistudio.google.com/app/apikey"
+                                                        )
+                                                )
+                                        context.startActivity(intent)
+                                },
+                                modifier = Modifier.size(24.dp)
+                        ) {
                                 Icon(
-                                        imageVector =
-                                                if (isDropdownExpanded) Icons.Filled.ArrowDropUp
-                                                else Icons.Filled.ArrowDropDown,
-                                        contentDescription = "Toggle system theme options"
-                                        // Tint will be inherited from Card's contentColor via
-                                        // LocalContentColor
-                                        )
-                                Spacer(Modifier.width(8.dp)) // Spacer between arrow and circle
+                                        imageVector = Icons.Outlined.HelpOutline,
+                                        contentDescription = "Get API Key Help",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                )
                         }
-
-                        Surface(
-                                modifier = Modifier.size(32.dp),
-                                shape = CircleShape,
-                                color = themeColorCircle,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                        ) {}
+                        IconButton(onClick = onEditClick) {
+                                Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit API Key",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                )
+                        }
                 }
         }
 }
 
-private fun getThemeColors(
-        selectedOption: String,
-        customColor: Color,
-        materialColorScheme: ColorScheme
-): Pair<Color, Color> { // Returns (containerColor, contentColor)
-        val containerColor =
-                when (selectedOption) {
-                        THEME_OPTION_SYSTEM_BACKGROUND -> materialColorScheme.background
-                        THEME_OPTION_SYSTEM_PRIMARY -> materialColorScheme.primaryContainer
-                        THEME_OPTION_SYSTEM_SECONDARY -> materialColorScheme.secondaryContainer
-                        THEME_OPTION_SYSTEM_TERTIARY -> materialColorScheme.tertiaryContainer
-                        THEME_OPTION_LIGHT -> LightThemeColor
-                        THEME_OPTION_SEPIA -> SepiaThemeColor
-                        THEME_OPTION_DARK -> DarkThemeColor
-                        THEME_OPTION_CUSTOM -> customColor
-                        else -> materialColorScheme.background // Default
-                }
+@Composable
+private fun ModelSelectionCard(
+        selectedModel: String,
+        availableModels: Map<String, String>,
+        onEditClick: () -> Unit
+) {
+        val currentModelDisplayName = availableModels[selectedModel] ?: selectedModel
 
-        val contentColor =
-                when (selectedOption) {
-                        THEME_OPTION_SYSTEM_BACKGROUND -> materialColorScheme.onBackground
-                        THEME_OPTION_SYSTEM_PRIMARY -> materialColorScheme.onPrimaryContainer
-                        THEME_OPTION_SYSTEM_SECONDARY -> materialColorScheme.onSecondaryContainer
-                        THEME_OPTION_SYSTEM_TERTIARY -> materialColorScheme.onTertiaryContainer
-                        THEME_OPTION_LIGHT,
-                        THEME_OPTION_SEPIA,
-                        THEME_OPTION_DARK,
-                        THEME_OPTION_CUSTOM -> {
-                                if (containerColor.luminance() > 0.5f) Color.Black else Color.White
+        ElevatedCard(
+                modifier = Modifier.fillMaxWidth().clickable { onEditClick() },
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        ) {
+                Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                        text = "AI Model",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                        text = currentModelDisplayName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                         }
-                        else -> materialColorScheme.onBackground // Default
+                        IconButton(onClick = onEditClick) {
+                                Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Change AI Model",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                )
+                        }
                 }
-        return Pair(containerColor, contentColor)
+        }
+}
+
+@Composable
+private fun SummaryLengthCard(summaryLength: Int, onLengthChange: (Int) -> Unit) {
+        ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        ) {
+                Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                        ) {
+                                Text(
+                                        "Summary Length",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                        getLengthLabel(summaryLength),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                        }
+                        Slider(
+                                value = summaryLength.toFloat(),
+                                onValueChange = { onLengthChange(it.toInt()) },
+                                valueRange = 1f..5f,
+                                modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                                Text(
+                                        text = "Brief",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                        text = "Detailed",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                        }
+                }
+        }
+}
+
+@Composable
+private fun CustomPromptCard(summaryPrompt: String, onEditClick: () -> Unit) {
+        ElevatedCard(
+                modifier = Modifier.fillMaxWidth().clickable { onEditClick() },
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        ) {
+                Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                ) {
+                        Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                                Text(
+                                        text = "Custom Prompt",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                        text =
+                                                summaryPrompt.ifEmpty {
+                                                        "Tap to set a custom prompt"
+                                                },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color =
+                                                if (summaryPrompt.isEmpty())
+                                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                                                .copy(alpha = 0.6f)
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis,
+                                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                                )
+                        }
+                        IconButton(onClick = onEditClick) {
+                                Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit Prompt",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                )
+                        }
+                }
+        }
+}
+
+@Composable
+private fun TextSizeCard(textSizeMultiplier: Float, onTextSizeChange: (Float) -> Unit) {
+        ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        ) {
+                Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                        ) {
+                                Text(
+                                        text = "Text Size",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                        text = getTextSizeLabel(textSizeMultiplier),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                        }
+                        Slider(
+                                value = textSizeMultiplier,
+                                onValueChange = onTextSizeChange,
+                                valueRange = 0.5f..2.0f,
+                                steps = 14,
+                                modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                                Text(
+                                        text = "50%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                        text = "200%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                        }
+                }
+        }
+}
+
+@Composable
+private fun SaveChangesCard(onReset: () -> Unit, onSave: () -> Unit) {
+        Card(
+                modifier =
+                        Modifier.fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp)
+                                .navigationBarsPadding(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                colors =
+                        CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+        ) {
+                Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                        Column {
+                                Text(
+                                        text = "Unsaved Changes",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                        text = "You have unsaved settings",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color =
+                                                MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.7f
+                                                )
+                                )
+                        }
+
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                                OutlinedButton(
+                                        onClick = onReset,
+                                        modifier = Modifier.weight(1f),
+                                        colors =
+                                                ButtonDefaults.outlinedButtonColors(
+                                                        contentColor =
+                                                                MaterialTheme.colorScheme.onSurface
+                                                )
+                                ) {
+                                        Icon(
+                                                imageVector = Icons.Default.Refresh,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Reset")
+                                }
+
+                                Button(
+                                        onClick = onSave,
+                                        modifier = Modifier.weight(1f),
+                                        colors =
+                                                ButtonDefaults.buttonColors(
+                                                        containerColor =
+                                                                MaterialTheme.colorScheme.primary
+                                                )
+                                ) { Text("Save Settings") }
+                        }
+                }
+        }
 }
 
 @Preview(showBackground = true)
