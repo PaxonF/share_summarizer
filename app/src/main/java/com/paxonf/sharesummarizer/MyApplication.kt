@@ -25,14 +25,4 @@ class MyApplication : Application() {
             )
         }
     }
-
-    override fun onTrimMemory(level: Int) {
-        super.onTrimMemory(level)
-        // Clean up resources when memory is low
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        // Handle low memory situations
-    }
 }
