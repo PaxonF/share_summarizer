@@ -52,6 +52,7 @@ import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_SECONDARY
 import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_TERTIARY
 import com.paxonf.sumifai.ui.components.theme.getThemeColors
 import com.paxonf.sumifai.ui.theme.RobotoFlex
+import com.paxonf.sumifai.ui.theme.sumifAITheme
 import com.paxonf.sumifai.viewmodel.SettingsViewModel
 
 // Theme option identifiers

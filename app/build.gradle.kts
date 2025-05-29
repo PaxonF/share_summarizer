@@ -11,8 +11,8 @@ android {
         applicationId = "com.paxonf.sumifai"
         minSdk = 26 // Material 3 recommends API 21+, some features might need higher
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1-alpha"
+        versionCode = 3
+        versionName = "1.2-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.paxonf.sumifai.data.AppPreferences
 import com.paxonf.sumifai.ui.components.AppSettingsScreen
+import com.paxonf.sumifai.ui.theme.sumifAITheme
 import com.paxonf.sumifai.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {

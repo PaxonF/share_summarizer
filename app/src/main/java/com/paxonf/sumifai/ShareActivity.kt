@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.paxonf.sumifai.data.AppPreferences
 import com.paxonf.sumifai.ui.components.SummaryBottomSheet
+import com.paxonf.sumifai.ui.theme.sumifAITheme
 import com.paxonf.sumifai.utils.TextSummarizer
 import com.paxonf.sumifai.viewmodel.SummaryViewModel
 
