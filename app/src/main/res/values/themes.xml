@@ -27,5 +27,5 @@
         <item name="postSplashScreenTheme">@style/Theme.ShareSummarizer</item>
     </style>
 
-    <string name="app_name_settings">summifAI Settings</string>
+    <string name="app_name_settings">sumifAI Settings</string>
 </resources>

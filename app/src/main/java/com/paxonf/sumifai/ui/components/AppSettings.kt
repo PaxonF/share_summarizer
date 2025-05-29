@@ -273,7 +273,7 @@ fun AppSettingsScreen(settingsViewModel: SettingsViewModel) {
                         TopAppBar(
                                 title = {
                                         Text(
-                                                "summifAI",
+                                                "sumifAI",
                                                 fontFamily = RobotoFlex,
                                                 fontWeight = FontWeight.ExtraBold,
                                                 fontSize = 24.sp
