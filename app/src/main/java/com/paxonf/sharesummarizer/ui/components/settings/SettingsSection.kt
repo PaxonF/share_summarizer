@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.ui.components.settings
+package com.paxonf.sharesummarizer.ui.components.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

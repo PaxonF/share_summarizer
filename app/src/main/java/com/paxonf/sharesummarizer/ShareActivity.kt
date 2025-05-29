@@ -1,4 +1,4 @@
-package com.paxonf.sumifai
+package com.paxonf.sharesummarizer
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,11 +12,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.paxonf.sumifai.data.AppPreferences
-import com.paxonf.sumifai.ui.components.SummaryBottomSheet
-import com.paxonf.sumifai.ui.theme.sumifAITheme
-import com.paxonf.sumifai.utils.TextSummarizer
-import com.paxonf.sumifai.viewmodel.SummaryViewModel
+import com.paxonf.sharesummarizer.data.AppPreferences
+import com.paxonf.sharesummarizer.ui.components.SummaryBottomSheet
+import com.paxonf.sharesummarizer.ui.theme.sumifAITheme
+import com.paxonf.sharesummarizer.utils.TextSummarizer
+import com.paxonf.sharesummarizer.viewmodel.SummaryViewModel
 
 class ShareActivity : ComponentActivity() {
 

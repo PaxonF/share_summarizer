@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.ui.components
+package com.paxonf.sharesummarizer.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

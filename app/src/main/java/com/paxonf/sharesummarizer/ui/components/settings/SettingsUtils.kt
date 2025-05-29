@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.ui.components.settings
+package com.paxonf.sharesummarizer.ui.components.settings
 
 fun getLengthLabel(length: Int): String {
     return when (length) {

@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.ui.theme
+package com.paxonf.sharesummarizer.ui.theme
 
 import android.app.Activity
 import android.os.Build

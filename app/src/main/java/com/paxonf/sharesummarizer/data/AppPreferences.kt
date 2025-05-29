@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.data
+package com.paxonf.sharesummarizer.data
 
 import android.content.Context
 import android.content.SharedPreferences

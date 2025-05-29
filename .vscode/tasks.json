@@ -22,14 +22,14 @@
     {
       "label": "Run App",
       "type": "shell",
-      "command": "adb shell am start -n com.paxonf.sumifai/.MainActivity",
+      "command": "adb shell am start -n com.paxonf.sharesummarizer/.MainActivity",
       "group": "test",
       "problemMatcher": []
     },
     {
       "label": "Run App in Debug Mode",
       "type": "shell",
-      "command": "adb shell am start -D -n com.paxonf.sumifai/.MainActivity",
+      "command": "adb shell am start -D -n com.paxonf.sharesummarizer/.MainActivity",
       "group": "test",
       "problemMatcher": []
     },
@@ -73,7 +73,7 @@
     {
       "label": "Prepare For Debugging",
       "type": "shell",
-      "command": "adb wait-for-device && adb shell pm clear com.paxonf.sumifai",
+      "command": "adb wait-for-device && adb shell pm clear com.paxonf.sharesummarizer",
       "dependsOn": ["Build Debug APK", "Install Debug APK"],
       "dependsOrder": "sequence",
       "presentation": {
@@ -102,14 +102,14 @@
     {
       "label": "Kill App",
       "type": "shell",
-      "command": "adb shell am force-stop com.paxonf.sumifai",
+      "command": "adb shell am force-stop com.paxonf.sharesummarizer",
       "group": "none",
       "problemMatcher": []
     },
     {
       "label": "Clear App Data",
       "type": "shell",
-      "command": "adb shell pm clear com.paxonf.sumifai",
+      "command": "adb shell pm clear com.paxonf.sharesummarizer",
       "group": "none",
       "problemMatcher": []
     },

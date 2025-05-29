@@ -1,4 +1,4 @@
-package com.paxonf.sumifai.ui.components.theme
+package com.paxonf.sharesummarizer.ui.components.theme
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
