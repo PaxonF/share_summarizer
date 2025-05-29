@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.utils
+package com.paxonf.sumifai.utils
 
 // OkHttp imports
 import android.content.Context

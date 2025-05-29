@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.utils
+package com.paxonf.sumifai.utils
 
 object Constants {
     const val DEFAULT_SUMMARY_PROMPT =

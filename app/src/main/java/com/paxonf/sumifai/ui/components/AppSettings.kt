@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.components
+package com.paxonf.sumifai.ui.components
 
 import android.content.Intent
 import android.net.Uri
@@ -33,27 +33,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.paxonf.sharesummarizer.data.AppPreferences
-import com.paxonf.sharesummarizer.ui.components.dialogs.ApiKeyEditDialog
-import com.paxonf.sharesummarizer.ui.components.dialogs.CustomColorPickerDialog
-import com.paxonf.sharesummarizer.ui.components.dialogs.ModelSelectionDialog
-import com.paxonf.sharesummarizer.ui.components.dialogs.PromptEditDialog
-import com.paxonf.sharesummarizer.ui.components.settings.SettingsSection
-import com.paxonf.sharesummarizer.ui.components.settings.getLengthLabel
-import com.paxonf.sharesummarizer.ui.components.settings.getTextSizeLabel
-import com.paxonf.sharesummarizer.ui.components.theme.BottomSheetThemeSelection
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_CUSTOM
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_DARK
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_LIGHT
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SEPIA
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_BACKGROUND
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_PRIMARY
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_SECONDARY
-import com.paxonf.sharesummarizer.ui.components.theme.THEME_OPTION_SYSTEM_TERTIARY
-import com.paxonf.sharesummarizer.ui.components.theme.getThemeColors
-import com.paxonf.sharesummarizer.ui.theme.RobotoFlex
-import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
-import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
+import com.paxonf.sumifai.data.AppPreferences
+import com.paxonf.sumifai.ui.components.dialogs.ApiKeyEditDialog
+import com.paxonf.sumifai.ui.components.dialogs.CustomColorPickerDialog
+import com.paxonf.sumifai.ui.components.dialogs.ModelSelectionDialog
+import com.paxonf.sumifai.ui.components.dialogs.PromptEditDialog
+import com.paxonf.sumifai.ui.components.settings.SettingsSection
+import com.paxonf.sumifai.ui.components.settings.getLengthLabel
+import com.paxonf.sumifai.ui.components.settings.getTextSizeLabel
+import com.paxonf.sumifai.ui.components.theme.BottomSheetThemeSelection
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_CUSTOM
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_DARK
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_LIGHT
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SEPIA
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_BACKGROUND
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_PRIMARY
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_SECONDARY
+import com.paxonf.sumifai.ui.components.theme.THEME_OPTION_SYSTEM_TERTIARY
+import com.paxonf.sumifai.ui.components.theme.getThemeColors
+import com.paxonf.sumifai.ui.theme.RobotoFlex
+import com.paxonf.sumifai.viewmodel.SettingsViewModel
 
 // Theme option identifiers
 private const val THEME_OPTION_SYSTEM_BACKGROUND = "system_background"
@@ -924,7 +923,7 @@ private fun SaveChangesCard(onReset: () -> Unit, onSave: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun AppSettingsScreenPreview() {
-        ShareSummarizerTheme {
+        sumifAITheme {
                 val context = LocalContext.current
                 val dummyPrefs = AppPreferences(context)
                 val dummyViewModel = SettingsViewModel(dummyPrefs, context)

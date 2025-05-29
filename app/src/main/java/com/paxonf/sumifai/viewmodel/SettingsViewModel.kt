@@ -1,11 +1,11 @@
-package com.paxonf.sharesummarizer.viewmodel
+package com.paxonf.sumifai.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paxonf.sharesummarizer.data.AppPreferences
-import com.paxonf.sharesummarizer.utils.Constants
-import com.paxonf.sharesummarizer.utils.TextSummarizer
+import com.paxonf.sumifai.data.AppPreferences
+import com.paxonf.sumifai.utils.Constants
+import com.paxonf.sumifai.utils.TextSummarizer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

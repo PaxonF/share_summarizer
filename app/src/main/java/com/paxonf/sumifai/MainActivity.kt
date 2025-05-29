@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer
+package com.paxonf.sumifai
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,10 +8,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.paxonf.sharesummarizer.data.AppPreferences
-import com.paxonf.sharesummarizer.ui.components.AppSettingsScreen
-import com.paxonf.sharesummarizer.ui.theme.ShareSummarizerTheme
-import com.paxonf.sharesummarizer.viewmodel.SettingsViewModel
+import com.paxonf.sumifai.data.AppPreferences
+import com.paxonf.sumifai.ui.components.AppSettingsScreen
+import com.paxonf.sumifai.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -43,7 +42,7 @@ class MainActivity : ComponentActivity() {
         appPreferences = AppPreferences(applicationContext)
 
         setContent {
-            ShareSummarizerTheme(dynamicColor = true) {
+            sumifAITheme(dynamicColor = true) {
                 AppSettingsScreen(settingsViewModel = settingsViewModel)
             }
         }

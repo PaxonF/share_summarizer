@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.data
+package com.paxonf.sumifai.data
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -40,7 +40,7 @@ class AppPreferences(private val context: Context) {
         set(value) = preferences.edit { putFloat(KEY_BOTTOM_SHEET_TEXT_SIZE_MULTIPLIER, value) }
 
     companion object {
-        private const val PREFERENCES_NAME = "share_summarizer_prefs"
+        private const val PREFERENCES_NAME = "sumifai_prefs"
         private const val KEY_API_KEY = "api_key"
         private const val KEY_SUMMARY_LENGTH = "summary_length"
         private const val KEY_SELECTED_MODEL = "selected_model"

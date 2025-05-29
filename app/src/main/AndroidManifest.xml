@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ShareSummarizer"
+        android:theme="@style/Theme.sumifAI"
         tools:targetApi="31"
         android:name=".MyApplication">
 
@@ -30,7 +30,7 @@
         <activity
             android:name=".ShareActivity"
             android:exported="true"
-            android:theme="@style/Theme.ShareSummarizer.Transparent"  android:excludeFromRecents="true"
+            android:theme="@style/Theme.sumifAI.Transparent"  android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:taskAffinity="">  <intent-filter>
                 <action android:name="android.intent.action.SEND" />

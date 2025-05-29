@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.components.dialogs
+package com.paxonf.sumifai.ui.components.dialogs
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions

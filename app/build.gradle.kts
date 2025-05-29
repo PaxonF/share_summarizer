@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.paxonf.sharesummarizer"
+    namespace = "com.paxonf.sumifai"
     compileSdk = 34 // Stable API level for current setup
 
     defaultConfig {
-        applicationId = "com.paxonf.sharesummarizer"
+        applicationId = "com.paxonf.sumifai"
         minSdk = 26 // Material 3 recommends API 21+, some features might need higher
         targetSdk = 34
         versionCode = 2

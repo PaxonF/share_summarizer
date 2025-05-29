@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.theme
+package com.paxonf.sumifai.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -21,7 +21,7 @@ private val LightColorScheme =
         lightColorScheme(primary = Purple40, secondary = PurpleGrey40, tertiary = Pink40)
 
 @Composable
-fun ShareSummarizerTheme(
+fun sumifAITheme(
         darkTheme: Boolean = isSystemInDarkTheme(),
         // Dynamic color is available on Android 12+
         dynamicColor: Boolean = true,

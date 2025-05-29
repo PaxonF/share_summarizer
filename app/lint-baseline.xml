@@ -21,7 +21,7 @@
         errorLine1="                    if (darkTheme) dynamicDarkColorScheme(context)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/paxonf/sharesummarizer/ui/theme/Theme.kt"
+            file="src/main/java/com/paxonf/sumifai/ui/theme/Theme.kt"
             line="33"
             column="36"/>
     </issue>
@@ -32,7 +32,7 @@
         errorLine1="                    else dynamicLightColorScheme(context)"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/paxonf/sharesummarizer/ui/theme/Theme.kt"
+            file="src/main/java/com/paxonf/sumifai/ui/theme/Theme.kt"
             line="34"
             column="26"/>
     </issue>

@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.theme
+package com.paxonf.sumifai.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -43,7 +43,7 @@ val Typography =
 val RobotoFlex =
         FontFamily(
                 Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        resId = com.paxonf.sumifai.R.font.roboto_flex,
                         weight = FontWeight.Normal,
                         variationSettings =
                                 FontVariation.Settings(
@@ -51,12 +51,12 @@ val RobotoFlex =
                                 )
                 ),
                 Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        resId = com.paxonf.sumifai.R.font.roboto_flex,
                         weight = FontWeight.Bold, // Bold is 700
                         variationSettings = FontVariation.Settings(FontVariation.weight(700))
                 ),
                 Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
+                        resId = com.paxonf.sumifai.R.font.roboto_flex,
                         weight = FontWeight.ExtraBold, // ExtraBold is 800
                         variationSettings =
                                 FontVariation.Settings(

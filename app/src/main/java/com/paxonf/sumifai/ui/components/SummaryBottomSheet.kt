@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.components
+package com.paxonf.sumifai.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.paxonf.sharesummarizer.viewmodel.SummaryUiState
+import com.paxonf.sumifai.viewmodel.SummaryUiState
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser

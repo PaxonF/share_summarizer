@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer
+package com.paxonf.sumifai
 
 import android.app.Application
 import android.content.pm.ApplicationInfo

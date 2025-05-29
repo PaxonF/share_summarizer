@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ShareSummarizer"
+rootProject.name = "sumifAI"
 include(":app") 

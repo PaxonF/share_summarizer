@@ -1,4 +1,4 @@
-package com.paxonf.sharesummarizer.ui.theme
+package com.paxonf.sumifai.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
