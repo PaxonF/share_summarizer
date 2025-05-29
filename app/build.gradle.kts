@@ -11,8 +11,8 @@ android {
         applicationId = "com.paxonf.sharesummarizer"
         minSdk = 26 // Material 3 recommends API 21+, some features might need higher
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
