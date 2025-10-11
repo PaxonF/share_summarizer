@@ -6,12 +6,17 @@ import android.webkit.URLUtil
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.dankito.readability4j.Readability4J
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 
@@ -20,48 +25,56 @@ class TextSummarizer(private val context: Context) {
     private val client =
             OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
+                    .readTimeout(0, TimeUnit.SECONDS) // Infinite timeout for streaming
                     .writeTimeout(30, TimeUnit.SECONDS)
                     .build()
 
-    suspend fun summarize(
+    fun summarize(
             text: String,
             summaryLength: Int,
             apiKey: String,
-            modelId: String = "gemini-2.0-flash",
+            modelId: String = "gemini-1.5-flash",
             summaryPrompt: String
-    ): String {
-        return withContext(Dispatchers.IO) {
-            if (apiKey.isBlank()) {
-                return@withContext fallbackSummarize(text, summaryLength)
-            }
-
-            try {
-                // Check if the text is a URL and fetch its content if needed
-                val contentToSummarize =
-                        if (isUrl(text)) {
-                            try {
-                                extractArticleContent(text)
-                            } catch (e: Exception) {
-                                return@withContext "Error extracting content from URL: ${e.message}"
-                            }
-                        } else {
-                            text
+    ): Flow<String> =
+            flow {
+                        if (apiKey.isBlank()) {
+                            emit(fallbackSummarize(text, summaryLength))
+                            return@flow
                         }
 
-                // Convert the 1-5 scale to a percentage (0.2 to 1.0)
-                val summaryLengthPercentage = convertLengthToPercentage(summaryLength)
-                val summaryLengthString = convertLengthToString(summaryLength)
-                val configInfo =
-                        "The user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
+                        // Check if the text is a URL and fetch its content if needed
+                        val contentToSummarize =
+                                if (isUrl(text)) {
+                                    try {
+                                        extractArticleContent(text)
+                                    } catch (e: Exception) {
+                                        emit("Error extracting content from URL: ${e.message}")
+                                        return@flow
+                                    }
+                                } else {
+                                    text
+                                }
 
-                makeAPIRequest(contentToSummarize, apiKey, modelId, configInfo, summaryPrompt)
-            } catch (e: Exception) {
-                e.printStackTrace() // Log the exception for debugging
-                return@withContext fallbackSummarize(text, summaryLength)
-            }
-        }
-    }
+                        // Convert the 1-5 scale to a percentage (0.2 to 1.0)
+                        val summaryLengthPercentage = convertLengthToPercentage(summaryLength)
+                        val summaryLengthString = convertLengthToString(summaryLength)
+                        val configInfo =
+                                "The user has configured that their summary should be '$summaryLengthString', or, in other words, '$summaryLengthPercentage' long compared to the original text."
+
+                        makeAPIRequest(
+                                        contentToSummarize,
+                                        apiKey,
+                                        modelId,
+                                        configInfo,
+                                        summaryPrompt
+                                )
+                                .collect { emit(it) }
+                    }
+                    .catch { e ->
+                        e.printStackTrace() // Log the exception for debugging
+                        emit(fallbackSummarize(text, summaryLength))
+                    }
+                    .flowOn(Dispatchers.IO)
 
     private fun isUrl(text: String): Boolean {
         // Using Android's URLUtil to validate URL
@@ -138,87 +151,83 @@ class TextSummarizer(private val context: Context) {
     private fun makeAPIRequest(
             promptText: String,
             apiKey: String,
-            modelId: String = "gemini-2.0-flash",
+            modelId: String = "gemini-1.5-flash",
             configInfo: String,
             summaryPrompt: String
-    ): String {
-        val urlString =
-                "https://generativelanguage.googleapis.com/v1beta/models/$modelId:generateContent?key=$apiKey"
+    ): Flow<String> =
+            flow {
+                val urlString =
+                        "https://generativelanguage.googleapis.com/v1beta/models/$modelId:streamGenerateContent?key=$apiKey"
 
-        // Construct the JSON request body with system_instruction separated from content
-        val requestBodyJson = JSONObject()
+                // Construct the JSON request body with system_instruction separated from content
+                val requestBodyJson = JSONObject()
 
-        // Add system instruction
-        val systemInstruction = JSONObject()
-        val systemPart = JSONObject().put("text", summaryPrompt + " " + configInfo)
-        systemInstruction.put("parts", org.json.JSONArray().put(systemPart))
-        requestBodyJson.put("system_instruction", systemInstruction)
+                // Add system instruction
+                val systemInstruction = JSONObject()
+                val systemPart = JSONObject().put("text", summaryPrompt + " " + configInfo)
+                systemInstruction.put("parts", org.json.JSONArray().put(systemPart))
+                requestBodyJson.put("system_instruction", systemInstruction)
 
-        // Add content to summarize
-        val content = JSONObject()
-        val contentPart = JSONObject().put("text", promptText)
-        content.put("parts", org.json.JSONArray().put(contentPart))
-        requestBodyJson.put("contents", org.json.JSONArray().put(content))
+                // Add content to summarize
+                val content = JSONObject()
+                val contentPart = JSONObject().put("text", promptText)
+                content.put("parts", org.json.JSONArray().put(contentPart))
+                requestBodyJson.put("contents", org.json.JSONArray().put(content))
 
-        // Add safety settings and generation config
-        val generationConfig = JSONObject()
-        generationConfig.put("temperature", 0.2)
-        generationConfig.put("topP", 0.8)
-        generationConfig.put("topK", 40)
-        generationConfig.put("maxOutputTokens", 1024)
-        requestBodyJson.put("generationConfig", generationConfig)
+                // Add safety settings and generation config
+                val generationConfig = JSONObject()
+                generationConfig.put("temperature", 0.2)
+                generationConfig.put("topP", 0.8)
+                generationConfig.put("topK", 40)
+                generationConfig.put("maxOutputTokens", 8192)
+                requestBodyJson.put("generationConfig", generationConfig)
 
-        try {
-            val mediaType = "application/json; charset=utf-8".toMediaType()
-            val requestBody = requestBodyJson.toString().toRequestBody(mediaType)
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val requestBody = requestBodyJson.toString().toRequestBody(mediaType)
 
-            val request =
-                    Request.Builder()
-                            .url(urlString)
-                            .post(requestBody)
-                            .header("Content-Type", "application/json")
-                            .build()
+                val request =
+                        Request.Builder()
+                                .url(urlString)
+                                .post(requestBody)
+                                .header("Content-Type", "application/json")
+                                .build()
 
-            client.newCall(request).execute().use { response ->
-                val statusCode = response.code
-                val responseBody = response.body?.string() ?: ""
-
-                if (statusCode == 200) {
-                    val responseJson = JSONObject(responseBody)
-                    try {
-                        // Navigate through the JSON structure to get the text
-                        // Expected path: candidates[0].content.parts[0].text
-                        val text =
-                                responseJson
-                                        .getJSONArray("candidates")
-                                        .getJSONObject(0)
-                                        .getJSONObject("content")
-                                        .getJSONArray("parts")
-                                        .getJSONObject(0)
-                                        .getString("text")
-                        return text
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        return "Error parsing API response: ${e.message}"
-                    }
-                } else {
-                    try {
-                        val errorJson = JSONObject(responseBody).optJSONObject("error")
-                        if (errorJson != null) {
-                            val message = errorJson.optString("message", "Unknown error")
-                            return "API Error: $message"
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        val errorBody = response.body?.string() ?: "Unknown error"
+                        try {
+                            val errorJson = JSONObject(errorBody).optJSONObject("error")
+                            val message =
+                                    errorJson?.optString("message", "Unknown API error")
+                                            ?: "Unknown API error"
+                            emit("API Error: $message")
+                        } catch (e: JSONException) {
+                            emit("Error from API (status ${response.code}): $errorBody")
                         }
-                    } catch (pe: Exception) {
-                        // Ignored
+                        return@use
                     }
-                    return "Error from API (status $statusCode)"
+
+                    val source = response.body?.source()
+                    while (source != null && !source.exhausted()) {
+                        val line = source.readUtf8Line()
+                        if (line != null && line.trim().startsWith("\"text\":")) {
+                            try {
+                                val textContent =
+                                        line.trim()
+                                                .substringAfter("\"text\":")
+                                                .trim()
+                                                .removeSurrounding("\"")
+                                                .removeSuffix(",")
+                                                .replace("\\n", "\n")
+                                                .replace("\\\"", "\"")
+                                emit(textContent)
+                            } catch (e: Exception) {
+                                // Ignore malformed lines
+                            }
+                        }
+                    }
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return "Network error: ${e.message}"
-        }
-    }
 
     /** Simple fallback summarization method (can be kept as a backup) */
     private fun fallbackSummarize(text: String, summaryLength: Int): String {

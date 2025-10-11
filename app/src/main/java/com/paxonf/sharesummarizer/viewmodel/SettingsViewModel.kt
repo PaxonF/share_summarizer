@@ -9,6 +9,8 @@ import com.paxonf.sharesummarizer.utils.TextSummarizer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val appPreferences: AppPreferences, private val context: Context) :
@@ -32,10 +34,8 @@ class SettingsViewModel(private val appPreferences: AppPreferences, private val 
     // Map of model IDs to display names
     val availableModels =
             mapOf(
-                    "gemini-1.5-flash" to "Gemini 1.5 Flash",
-                    "gemini-2.0-flash" to "Gemini 2.0 Flash",
-                    "gemini-2.5-flash-preview-04-17" to "Gemini 2.5 Flash (Preview)",
-                    "gemini-2.5-pro-preview-05-06" to "Gemini 2.5 Pro (Preview)"
+                    "gemini-2.5-flash" to "Gemini 2.5 Flash",
+                    "gemini-2.5-pro" to "Gemini 2.5 Pro"
             )
 
     val summaryPrompt: String
@@ -84,25 +84,34 @@ class SettingsViewModel(private val appPreferences: AppPreferences, private val 
 
     fun generatePreviewSummary(articleUrl: String) {
         viewModelScope.launch {
-            _previewSummaryUiState.value =
-                    SummaryUiState(isLoading = true, originalText = articleUrl)
-            val summary =
-                    textSummarizer.summarize(
-                            text = articleUrl,
-                            summaryLength = summaryLength,
-                            apiKey = apiKey,
-                            modelId = selectedModel,
-                            summaryPrompt = summaryPrompt.ifEmpty { getDefaultPrompt() }
+            // Reset state for a new summary generation
+            _previewSummaryUiState.value = SummaryUiState(isLoading = true, originalText = articleUrl)
+
+            textSummarizer.summarize(
+                text = articleUrl,
+                summaryLength = summaryLength,
+                apiKey = apiKey,
+                modelId = selectedModel,
+                summaryPrompt = summaryPrompt.ifEmpty { getDefaultPrompt() }
+            )
+            .onCompletion {
+                // Flow is complete, set loading to false
+                _previewSummaryUiState.value = _previewSummaryUiState.value.copy(isLoading = false)
+            }
+            .catch { e ->
+                // An exception occurred in the flow, update UI with error
+                _previewSummaryUiState.value = SummaryUiState(error = "Error: ${e.message}", originalText = articleUrl)
+            }
+            .collect { chunk ->
+                // Check if the chunk itself is an error message from the API
+                if (chunk.startsWith("API Error:") || chunk.startsWith("Error from API")) {
+                     _previewSummaryUiState.value = _previewSummaryUiState.value.copy(error = chunk, isLoading = false)
+                } else {
+                    // Append the new chunk to the summary
+                    _previewSummaryUiState.value = _previewSummaryUiState.value.copy(
+                        summary = _previewSummaryUiState.value.summary + chunk
                     )
-            if (summary.startsWith("Error") ||
-                            summary.startsWith("API Error") ||
-                            summary.startsWith("Network error")
-            ) {
-                _previewSummaryUiState.value =
-                        SummaryUiState(error = summary, originalText = articleUrl)
-            } else {
-                _previewSummaryUiState.value =
-                        SummaryUiState(summary = summary, originalText = articleUrl)
+                }
             }
         }
     }

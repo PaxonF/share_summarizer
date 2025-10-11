@@ -18,7 +18,7 @@ class AppPreferences(private val context: Context) {
         set(value) = preferences.edit { putInt(KEY_SUMMARY_LENGTH, value) }
 
     var selectedModel: String
-        get() = preferences.getString(KEY_SELECTED_MODEL, "gemini-2.0-flash") ?: "gemini-2.0-flash"
+        get() = preferences.getString(KEY_SELECTED_MODEL, "gemini-2.5-flash") ?: "gemini-2.5-flash"
         set(value) = preferences.edit { putString(KEY_SELECTED_MODEL, value) }
 
     var summaryPrompt: String

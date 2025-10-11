@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.paxonf.sharesummarizer.data.AppPreferences
 import com.paxonf.sharesummarizer.utils.Constants
 import com.paxonf.sharesummarizer.utils.TextSummarizer
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 
 class SummaryViewModel(
@@ -27,30 +29,31 @@ class SummaryViewModel(
         uiState = SummaryUiState(isLoading = true, originalText = text)
 
         viewModelScope.launch {
-            try {
-                val summaryLength = appPreferences.summaryLength
-                val apiKey = appPreferences.apiKey
-                val selectedModel = appPreferences.selectedModel
-                val summaryPrompt =
-                        appPreferences.summaryPrompt.ifEmpty { Constants.DEFAULT_SUMMARY_PROMPT }
+            val summaryLength = appPreferences.summaryLength
+            val apiKey = appPreferences.apiKey
+            val selectedModel = appPreferences.selectedModel
+            val summaryPrompt =
+                    appPreferences.summaryPrompt.ifEmpty { Constants.DEFAULT_SUMMARY_PROMPT }
 
-                val summary =
-                        textSummarizer.summarize(
-                                text,
-                                summaryLength,
-                                apiKey,
-                                selectedModel,
-                                summaryPrompt
-                        )
-                uiState = SummaryUiState(summary = summary, originalText = text, isLoading = false)
-            } catch (e: Exception) {
-                uiState =
-                        SummaryUiState(
-                                error = e.message ?: "Failed to generate summary",
-                                originalText = text,
-                                isLoading = false
-                        )
-            }
+            textSummarizer
+                    .summarize(text, summaryLength, apiKey, selectedModel, summaryPrompt)
+                    .onCompletion {
+                        uiState = uiState.copy(isLoading = false)
+                    }
+                    .catch { e ->
+                        uiState =
+                                uiState.copy(
+                                        error = e.message ?: "Failed to generate summary",
+                                        isLoading = false
+                                )
+                    }
+                    .collect { chunk ->
+                        if (chunk.startsWith("API Error:") || chunk.startsWith("Error from API")) {
+                            uiState = uiState.copy(error = chunk, isLoading = false)
+                        } else {
+                            uiState = uiState.copy(summary = uiState.summary + chunk)
+                        }
+                    }
         }
     }
 }

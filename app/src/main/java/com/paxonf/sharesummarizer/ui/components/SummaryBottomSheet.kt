@@ -1,19 +1,31 @@
 package com.paxonf.sharesummarizer.ui.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,426 +42,298 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryBottomSheet(
-        uiState: SummaryUiState,
-        onDismiss: () -> Unit,
-        onRetry: (String) -> Unit,
-        containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor: Color = MaterialTheme.colorScheme.onSurface,
-        textSizeMultiplier: Float = 1.0f
+    uiState: SummaryUiState,
+    onDismiss: () -> Unit,
+    onRetry: (String) -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    textSizeMultiplier: Float = 1.0f
 ) {
-        val scrollState = rememberScrollState()
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val scrollState = rememberScrollState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-        val loadingStateHeight = 200.dp // Fixed height for loading state content
+    val loadingStateHeight = 200.dp // Fixed height for loading state content
 
-        ModalBottomSheet(
-                onDismissRequest = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-                scrimColor = Color.Transparent,
-                containerColor = containerColor,
-                sheetState = sheetState
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth(),
+        scrimColor = Color.Transparent,
+        containerColor = containerColor,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier =
+            Modifier.fillMaxWidth()
+                .fillMaxHeight(0.9f)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                .animateContentSize() // Animate height changes of this Column
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-                Column(
-                        modifier =
-                                Modifier.fillMaxWidth()
-                                        .fillMaxHeight(0.9f)
-                                        .navigationBarsPadding()
-                                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                                        .animateContentSize() // Animate height changes of this
-                                        // Column
-                                        .verticalScroll(
-                                                scrollState
-                                        ), // Allows content within to scroll if sheet is not fully
-                        // expanded by drag
-                        horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                        AnimatedContent(
-                                targetState = uiState,
-                                transitionSpec = {
-                                        if (initialState.isLoading &&
-                                                        !targetState.isLoading &&
-                                                        targetState.summary.isNotEmpty()
-                                        ) {
-                                                (slideInVertically { fullHeight -> fullHeight } +
-                                                                fadeIn())
-                                                        .togetherWith(
-                                                                slideOutVertically { fullHeight ->
-                                                                        -fullHeight
-                                                                } + fadeOut()
-                                                        )
-                                                        .using(SizeTransform(clip = false))
-                                        } else if ((initialState.error != null ||
-                                                        initialState.summary.isNotEmpty()) &&
-                                                        targetState.isLoading
-                                        ) {
-                                                (slideInVertically { fullHeight -> -fullHeight } +
-                                                                fadeIn())
-                                                        .togetherWith(
-                                                                slideOutVertically { fullHeight ->
-                                                                        fullHeight
-                                                                } + fadeOut()
-                                                        )
-                                                        .using(SizeTransform(clip = false))
-                                        } else {
-                                                fadeIn(animationSpec = tween(220, delayMillis = 90))
-                                                        .togetherWith(
-                                                                fadeOut(animationSpec = tween(90))
-                                                        )
-                                                        .using(SizeTransform(clip = false))
-                                        }
-                                },
-                                label = "SummaryContentAnimation"
-                        ) { currentUiState ->
-                                when {
-                                        currentUiState.isLoading -> {
-                                                Box(
-                                                        modifier =
-                                                                Modifier.fillMaxWidth()
-                                                                        .height(
-                                                                                loadingStateHeight
-                                                                        ), // Fixed height for
-                                                        // loading content
-                                                        contentAlignment = Alignment.Center
-                                                ) {
-                                                        Column(
-                                                                horizontalAlignment =
-                                                                        Alignment.CenterHorizontally
-                                                        ) {
-                                                                CircularProgressIndicator(
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        bottom =
-                                                                                                16.dp
-                                                                                )
-                                                                )
-                                                                Text(
-                                                                        text =
-                                                                                "Generating summary...",
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .bodyMedium,
-                                                                        color = contentColor
-                                                                )
-                                                        }
-                                                }
-                                        }
-                                        currentUiState.error != null -> {
-                                                Box(
-                                                        modifier =
-                                                                Modifier.fillMaxWidth()
-                                                                        .padding(
-                                                                                vertical = 16.dp
-                                                                        ), // Allow natural height
-                                                        // with padding
-                                                        contentAlignment = Alignment.Center
-                                                ) {
-                                                        Column(
-                                                                horizontalAlignment =
-                                                                        Alignment.CenterHorizontally
-                                                        ) {
-                                                                Text(
-                                                                        text = "⚠️",
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .headlineLarge,
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .error,
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        bottom =
-                                                                                                8.dp
-                                                                                )
-                                                                )
-                                                                Text(
-                                                                        text = currentUiState.error,
-                                                                        color =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .error,
-                                                                        style =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .bodyMedium,
-                                                                        textAlign =
-                                                                                TextAlign.Center,
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        horizontal =
-                                                                                                16.dp,
-                                                                                        vertical =
-                                                                                                8.dp
-                                                                                )
-                                                                )
-                                                                Button(
-                                                                        onClick = {
-                                                                                onRetry(
-                                                                                        currentUiState
-                                                                                                .originalText
-                                                                                )
-                                                                        },
-                                                                        modifier =
-                                                                                Modifier.padding(
-                                                                                        top = 16.dp
-                                                                                )
-                                                                ) { Text("Retry") }
-                                                        }
-                                                }
-                                        }
-                                        currentUiState.summary.isNotEmpty() -> {
-                                                val summary = currentUiState.summary.trim()
-                                                // MarkdownText will determine its own size.
-                                                // The parent Column's scroll will handle it if too
-                                                // tall for dragged sheet height.
-                                                MarkdownText(
-                                                        markdown = summary,
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        color = contentColor,
-                                                        textSizeMultiplier = textSizeMultiplier
-                                                )
-                                        }
-                                        else -> { // "No summary available"
-                                                Box(
-                                                        modifier =
-                                                                Modifier.fillMaxWidth()
-                                                                        .height(
-                                                                                loadingStateHeight /
-                                                                                        2
-                                                                        ), // A smaller fixed height
-                                                        contentAlignment = Alignment.Center
-                                                ) {
-                                                        Text(
-                                                                text = "No summary available",
-                                                                style =
-                                                                        MaterialTheme.typography
-                                                                                .bodyMedium,
-                                                                textAlign = TextAlign.Center,
-                                                                color = contentColor
-                                                        )
-                                                }
-                                        }
-                                }
-                        }
+            // Define a stable key for the animation based on the state type
+            val animationKey =
+                when {
+                    uiState.error != null -> "Error"
+                    uiState.isLoading && uiState.summary.isEmpty() -> "Loading"
+                    uiState.summary.isNotEmpty() -> "Summary"
+                    else -> "Empty"
                 }
+
+            AnimatedContent(
+                targetState = animationKey,
+                transitionSpec = {
+                    // Slide and fade for major state changes
+                    (slideInVertically { fullHeight -> fullHeight } + fadeIn())
+                        .togetherWith(slideOutVertically { fullHeight -> -fullHeight } + fadeOut())
+                        .using(SizeTransform(clip = false))
+                },
+                label = "SummaryContentAnimation"
+            ) { key ->
+                when (key) {
+                    "Summary" -> {
+                        val summary = uiState.summary.trim()
+                        MarkdownText(
+                            markdown = summary,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = contentColor,
+                            textSizeMultiplier = textSizeMultiplier
+                        )
+                    }
+                    "Loading" -> {
+                        Box(
+                            modifier =
+                            Modifier.fillMaxWidth()
+                                .height(loadingStateHeight), // Fixed height
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                )
+                                Text(
+                                    text = "Generating summary...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = contentColor
+                                )
+                            }
+                        }
+                    }
+                    "Error" -> {
+                        Box(
+                            modifier =
+                            Modifier.fillMaxWidth()
+                                .padding(vertical = 16.dp), // Natural height
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "⚠️",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                Text(
+                                    text = uiState.error ?: "An unknown error occurred",
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                                Button(
+                                    onClick = { onRetry(uiState.originalText) },
+                                    modifier = Modifier.padding(top = 16.dp)
+                                ) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
+                    }
+                    "Empty" -> {
+                        Box(
+                            modifier =
+                            Modifier.fillMaxWidth()
+                                .height(loadingStateHeight / 2), // Smaller fixed height
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No summary available",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = contentColor
+                            )
+                        }
+                    }
+                }
+            }
         }
+    }
 }
 
 @Composable
 private fun MarkdownText(
-        markdown: String,
-        modifier: Modifier = Modifier,
-        color: Color = MaterialTheme.colorScheme.onSurface,
-        textSizeMultiplier: Float
+    markdown: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    textSizeMultiplier: Float
 ) {
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Simple markdown parsing for the most common elements
-                val lines = markdown.lines()
-                var i = 0
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Simple markdown parsing for the most common elements
+        val lines = markdown.lines()
+        var i = 0
 
-                while (i < lines.size) {
-                        val line = lines[i].trim()
+        while (i < lines.size) {
+            val line = lines[i].trim()
 
-                        when {
-                                line.startsWith("# ") -> {
-                                        Text(
-                                                text = line.substring(2),
-                                                style =
-                                                        MaterialTheme.typography.headlineMedium
-                                                                .copy(
-                                                                        fontSize =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .headlineMedium
-                                                                                        .fontSize *
-                                                                                        textSizeMultiplier,
-                                                                        lineHeight =
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .headlineMedium
-                                                                                        .lineHeight *
-                                                                                        textSizeMultiplier
-                                                                ),
-                                                fontWeight = FontWeight.Bold,
-                                                color = color,
-                                                modifier = Modifier.padding(vertical = 4.dp)
-                                        )
-                                }
-                                line.startsWith("## ") -> {
-                                        Text(
-                                                text = line.substring(3),
-                                                style =
-                                                        MaterialTheme.typography.headlineSmall.copy(
-                                                                fontSize =
-                                                                        MaterialTheme.typography
-                                                                                .headlineSmall
-                                                                                .fontSize *
-                                                                                textSizeMultiplier,
-                                                                lineHeight =
-                                                                        MaterialTheme.typography
-                                                                                .headlineSmall
-                                                                                .lineHeight *
-                                                                                textSizeMultiplier
-                                                        ),
-                                                fontWeight = FontWeight.Bold,
-                                                color = color,
-                                                modifier = Modifier.padding(vertical = 4.dp)
-                                        )
-                                }
-                                line.startsWith("### ") -> {
-                                        Text(
-                                                text = line.substring(4),
-                                                style =
-                                                        MaterialTheme.typography.titleLarge.copy(
-                                                                fontSize =
-                                                                        MaterialTheme.typography
-                                                                                .titleLarge
-                                                                                .fontSize *
-                                                                                textSizeMultiplier,
-                                                                lineHeight =
-                                                                        MaterialTheme.typography
-                                                                                .titleLarge
-                                                                                .lineHeight *
-                                                                                textSizeMultiplier
-                                                        ),
-                                                fontWeight = FontWeight.Bold,
-                                                color = color,
-                                                modifier = Modifier.padding(vertical = 2.dp)
-                                        )
-                                }
-                                line.startsWith("**") && line.endsWith("**") -> {
-                                        Text(
-                                                text = line.substring(2, line.length - 2),
-                                                style =
-                                                        MaterialTheme.typography.bodyLarge.copy(
-                                                                fontSize =
-                                                                        MaterialTheme.typography
-                                                                                .bodyLarge
-                                                                                .fontSize *
-                                                                                textSizeMultiplier,
-                                                                lineHeight =
-                                                                        MaterialTheme.typography
-                                                                                .bodyLarge
-                                                                                .lineHeight *
-                                                                                textSizeMultiplier
-                                                        ),
-                                                fontWeight = FontWeight.Bold,
-                                                color = color
-                                        )
-                                }
-                                line.startsWith("- ") || line.startsWith("* ") -> {
-                                        Row(
-                                                modifier = Modifier.padding(start = 16.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                                Text(
-                                                        text = "•",
-                                                        style =
-                                                                MaterialTheme.typography.bodyMedium
-                                                                        .copy(
-                                                                                fontSize =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .fontSize *
-                                                                                                textSizeMultiplier,
-                                                                                lineHeight =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .lineHeight *
-                                                                                                textSizeMultiplier
-                                                                        ),
-                                                        color = color
-                                                )
-                                                Text(
-                                                        text = line.substring(2),
-                                                        style =
-                                                                MaterialTheme.typography.bodyMedium
-                                                                        .copy(
-                                                                                fontSize =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .fontSize *
-                                                                                                textSizeMultiplier,
-                                                                                lineHeight =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .lineHeight *
-                                                                                                textSizeMultiplier
-                                                                        ),
-                                                        color = color,
-                                                        modifier = Modifier.weight(1f)
-                                                )
-                                        }
-                                }
-                                line.startsWith("*") &&
-                                        line.endsWith("*") &&
-                                        !line.startsWith("**") -> {
-                                        Text(
-                                                text = line.substring(1, line.length - 1),
-                                                style =
-                                                        MaterialTheme.typography.bodyMedium.copy(
-                                                                fontStyle =
-                                                                        androidx.compose.ui.text
-                                                                                .font.FontStyle
-                                                                                .Italic,
-                                                                fontSize =
-                                                                        MaterialTheme.typography
-                                                                                .bodyMedium
-                                                                                .fontSize *
-                                                                                textSizeMultiplier,
-                                                                lineHeight =
-                                                                        MaterialTheme.typography
-                                                                                .bodyMedium
-                                                                                .lineHeight *
-                                                                                textSizeMultiplier
-                                                        ),
-                                                color = color.copy(alpha = 0.8f)
-                                        )
-                                }
-                                line.isNotEmpty() -> {
-                                        // Handle bold text within regular paragraphs
-                                        if (line.contains("**")) {
-                                                FormattedText(
-                                                        text = line,
-                                                        color = color,
-                                                        textSizeMultiplier = textSizeMultiplier
-                                                )
-                                        } else {
-                                                Text(
-                                                        text = line,
-                                                        style =
-                                                                MaterialTheme.typography.bodyMedium
-                                                                        .copy(
-                                                                                fontSize =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .fontSize *
-                                                                                                textSizeMultiplier,
-                                                                                lineHeight =
-                                                                                        MaterialTheme
-                                                                                                .typography
-                                                                                                .bodyMedium
-                                                                                                .lineHeight *
-                                                                                                textSizeMultiplier
-                                                                        ),
-                                                        color = color
-                                                )
-                                        }
-                                }
-                        }
-                        i++
+            when {
+                line.startsWith("# ") && line.length > 2 -> {
+                    Text(
+                        text = line.substring(2),
+                        style =
+                        MaterialTheme.typography.headlineMedium.copy(
+                            fontSize =
+                            MaterialTheme.typography.headlineMedium.fontSize *
+                                textSizeMultiplier,
+                            lineHeight =
+                            MaterialTheme.typography.headlineMedium.lineHeight *
+                                textSizeMultiplier
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
+                line.startsWith("## ") && line.length > 3 -> {
+                    Text(
+                        text = line.substring(3),
+                        style =
+                        MaterialTheme.typography.headlineSmall.copy(
+                            fontSize =
+                            MaterialTheme.typography.headlineSmall.fontSize *
+                                textSizeMultiplier,
+                            lineHeight =
+                            MaterialTheme.typography.headlineSmall.lineHeight *
+                                textSizeMultiplier
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+                line.startsWith("### ") && line.length > 4 -> {
+                    Text(
+                        text = line.substring(4),
+                        style =
+                        MaterialTheme.typography.titleLarge.copy(
+                            fontSize =
+                            MaterialTheme.typography.titleLarge.fontSize *
+                                textSizeMultiplier,
+                            lineHeight =
+                            MaterialTheme.typography.titleLarge.lineHeight *
+                                textSizeMultiplier
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
+                line.startsWith("**") && line.endsWith("**") && line.length > 4 -> {
+                    Text(
+                        text = line.substring(2, line.length - 2),
+                        style =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            fontSize =
+                            MaterialTheme.typography.bodyLarge.fontSize *
+                                textSizeMultiplier,
+                            lineHeight =
+                            MaterialTheme.typography.bodyLarge.lineHeight *
+                                textSizeMultiplier
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        color = color
+                    )
+                }
+                (line.startsWith("- ") || line.startsWith("* ")) && line.length > 2 -> {
+                    Row(
+                        modifier = Modifier.padding(start = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "•",
+                            style =
+                            MaterialTheme.typography.bodyMedium.copy(
+                                fontSize =
+                                MaterialTheme.typography.bodyMedium.fontSize *
+                                    textSizeMultiplier,
+                                lineHeight =
+                                MaterialTheme.typography.bodyMedium.lineHeight *
+                                    textSizeMultiplier
+                            ),
+                            color = color
+                        )
+                        Text(
+                            text = line.substring(2),
+                            style =
+                            MaterialTheme.typography.bodyMedium.copy(
+                                fontSize =
+                                MaterialTheme.typography.bodyMedium.fontSize *
+                                    textSizeMultiplier,
+                                lineHeight =
+                                MaterialTheme.typography.bodyMedium.lineHeight *
+                                    textSizeMultiplier
+                            ),
+                            color = color,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                line.startsWith("*") && line.endsWith("*") && !line.startsWith("**") && line.length > 2 -> {
+                    Text(
+                        text = line.substring(1, line.length - 1),
+                        style =
+                        MaterialTheme.typography.bodyMedium.copy(
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            fontSize =
+                            MaterialTheme.typography.bodyMedium.fontSize *
+                                textSizeMultiplier,
+                            lineHeight =
+                            MaterialTheme.typography.bodyMedium.lineHeight *
+                                textSizeMultiplier
+                        ),
+                        color = color.copy(alpha = 0.8f)
+                    )
+                }
+                line.isNotEmpty() -> {
+                    // Handle bold text within regular paragraphs
+                    if (line.contains("**")) {
+                        FormattedText(
+                            text = line,
+                            color = color,
+                            textSizeMultiplier = textSizeMultiplier
+                        )
+                    } else {
+                        Text(
+                            text = line,
+                            style =
+                            MaterialTheme.typography.bodyMedium.copy(
+                                fontSize =
+                                MaterialTheme.typography.bodyMedium.fontSize *
+                                    textSizeMultiplier,
+                                lineHeight =
+                                MaterialTheme.typography.bodyMedium.lineHeight *
+                                    textSizeMultiplier
+                            ),
+                            color = color
+                        )
+                    }
+                }
+            }
+            i++
         }
+    }
 }
 
 @Composable
