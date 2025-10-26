@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,10 +93,9 @@ fun SummaryBottomSheet(
                         MarkdownText(
                             markdown = tightSummary,
                             modifier = Modifier.fillMaxWidth(),
-                            style = TextStyle(
+                            style = MaterialTheme.typography.bodyMedium.copy(
                                 color = contentColor,
-                                fontSize = (MaterialTheme.typography.bodyMedium.fontSize.value * textSizeMultiplier).sp,
-                                fontFamily = MaterialTheme.typography.bodyMedium.fontFamily
+                                fontSize = (MaterialTheme.typography.bodyMedium.fontSize.value * textSizeMultiplier).sp
                             )
                         )
                     }

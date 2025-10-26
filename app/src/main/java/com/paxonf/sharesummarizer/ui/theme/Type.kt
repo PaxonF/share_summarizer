@@ -8,62 +8,59 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
-// Set of Material typography styles to start with
-val Typography =
-        Typography(
-                bodyLarge =
-                        TextStyle(
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 16.sp,
-                                lineHeight = 24.sp,
-                                letterSpacing = 0.5.sp
-                        ),
-                titleLarge =
-                        TextStyle(
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 22.sp,
-                                lineHeight = 28.sp,
-                                letterSpacing = 0.sp
-                        ),
-                labelSmall =
-                        TextStyle(
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 11.sp,
-                                lineHeight = 16.sp,
-                                letterSpacing = 0.5.sp
-                        )
-        )
+import com.paxonf.sharesummarizer.R
 
 @OptIn(ExperimentalTextApi::class)
-// Define RobotoFlex FontFamily
 val RobotoFlex =
-        FontFamily(
-                Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
-                        weight = FontWeight.Normal,
-                        variationSettings =
-                                FontVariation.Settings(
-                                        FontVariation.weight(400) // Normal is 400
-                                )
-                ),
-                Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
-                        weight = FontWeight.Bold, // Bold is 700
-                        variationSettings = FontVariation.Settings(FontVariation.weight(700))
-                ),
-                Font(
-                        resId = com.paxonf.sharesummarizer.R.font.roboto_flex,
-                        weight = FontWeight.ExtraBold, // ExtraBold is 800
-                        variationSettings =
-                                FontVariation.Settings(
-                                        FontVariation.weight(800),
-                                        FontVariation.width(125f)
-                                )
-                )
-                // Add other weights if needed and if roboto_flex.ttf is a variable font supporting
-                // them
-                )
+    FontFamily(
+        Font(
+            resId = R.font.roboto_flex,
+            weight = FontWeight.Normal,
+            variationSettings =
+            FontVariation.Settings(
+                FontVariation.weight(400)
+            )
+        ),
+        Font(
+            resId = R.font.roboto_flex,
+            weight = FontWeight.Bold,
+            variationSettings = FontVariation.Settings(FontVariation.weight(700))
+        ),
+        Font(
+            resId = R.font.roboto_flex,
+            weight = FontWeight.ExtraBold,
+            variationSettings =
+            FontVariation.Settings(
+                FontVariation.weight(800),
+                FontVariation.width(125f)
+            )
+        )
+    )
+
+val Typography =
+    Typography(
+        bodyLarge =
+        TextStyle(
+            fontFamily = RobotoFlex,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 0.5.sp
+        ),
+        titleLarge =
+        TextStyle(
+            fontFamily = RobotoFlex,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            lineHeight = 28.sp,
+            letterSpacing = 0.sp
+        ),
+        labelSmall =
+        TextStyle(
+            fontFamily = RobotoFlex,
+            fontWeight = FontWeight.Medium,
+            fontSize = 11.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.5.sp
+        )
+    )
