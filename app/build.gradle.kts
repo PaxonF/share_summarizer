@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.paxonf.sharesummarizer"
-    compileSdk = 34 // Stable API level for current setup
+    compileSdk = 35 // Stable API level for current setup
 
     defaultConfig {
         applicationId = "com.paxonf.sharesummarizer"
         minSdk = 26 // Material 3 recommends API 21+, some features might need higher
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 4
         versionName = "1.3-alpha"
 
