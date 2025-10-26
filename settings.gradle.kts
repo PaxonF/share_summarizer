@@ -11,15 +11,17 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
         maven { 
             url = uri("https://jitpack.io") 
             content {
                 includeGroup("com.github.mikepenz")
                 includeGroup("com.mikepenz")
+                includeGroup("com.github.jeziellago")
             }
         }
     }
 }
 
 rootProject.name = "sumifAI"
-include(":app") 
+include(":app")

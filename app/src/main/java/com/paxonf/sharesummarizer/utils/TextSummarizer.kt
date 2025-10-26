@@ -33,7 +33,7 @@ class TextSummarizer(private val context: Context) {
             text: String,
             summaryLength: Int,
             apiKey: String,
-            modelId: String = "gemini-1.5-flash",
+            modelId: String = "gemini-2.5-flash-lite",
             summaryPrompt: String
     ): Flow<String> =
             flow {
@@ -151,7 +151,7 @@ class TextSummarizer(private val context: Context) {
     private fun makeAPIRequest(
             promptText: String,
             apiKey: String,
-            modelId: String = "gemini-1.5-flash",
+            modelId: String = "gemini-2.5-flash-lite",
             configInfo: String,
             summaryPrompt: String
     ): Flow<String> =

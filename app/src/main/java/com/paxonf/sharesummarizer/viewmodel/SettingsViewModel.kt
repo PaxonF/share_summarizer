@@ -35,7 +35,10 @@ class SettingsViewModel(private val appPreferences: AppPreferences, private val 
     val availableModels =
             mapOf(
                     "gemini-2.5-flash" to "Gemini 2.5 Flash",
-                    "gemini-2.5-pro" to "Gemini 2.5 Pro"
+                    "gemini-2.5-flash-lite" to "Gemini 2.5 Flash Lite",
+                    "gemini-2.5-pro" to "Gemini 2.5 Pro",
+                    "gemini-2.5-flash-preview-09-2025" to "Gemini 2.5 Flash (Preview)",
+                    "gemini-2.5-flash-lite-preview-09-2025" to "Gemini 2.5 Flash Lite (Preview)",
             )
 
     val summaryPrompt: String

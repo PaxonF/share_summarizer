@@ -102,4 +102,6 @@ dependencies {
     // Added Readability4J and Jsoup dependencies
     implementation("org.jsoup:jsoup:1.15.3")
     implementation("net.dankito.readability4j:readability4j:1.0.8")
+
+    implementation("com.github.jeziellago:compose-markdown:0.4.0")
 }
